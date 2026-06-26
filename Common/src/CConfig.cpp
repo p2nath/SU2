@@ -4114,7 +4114,7 @@ void CConfig::SetPostprocessing(SU2_COMPONENT val_software, unsigned short val_i
                      CURRENT_FUNCTION);
     }
 
-    if (Kind_FluidModel == SU2_NONEQ && GasModel == "AIR-7" && nWall_Catalytic != 0) {
+    if (Kind_FluidModel == SU2_NONEQ && (GasModel == "AIR-7"|| GasModel =="AIR-11") && nWall_Catalytic != 0) {
       SU2_MPI::Error("Catalytic wall recombination is not yet available for ionized flows in SU2_NEMO.", CURRENT_FUNCTION);
     }
 
@@ -6386,8 +6386,8 @@ void CConfig::SetOutput(SU2_COMPONENT val_software, unsigned short val_izone) {
       case MAIN_SOLVER::NEMO_RANS:
         cout << "Compressible two-temperature thermochemical non-equilibrium RANS equations." << endl;
         if (Kind_FluidModel == SU2_NONEQ){
-          if ((GasModel != "N2") && (GasModel != "AIR-5") && (GasModel != "ARGON"))
-          SU2_MPI::Error("The GAS_MODEL given as input is not valid. Choose one of the options: N2, AIR-5, ARGON.", CURRENT_FUNCTION);
+          if ((GasModel != "N2") && (GasModel != "AIR-5") && (GasModel != "ARGON") && (GasModel != "AIR-7") && (GasModel != "AIR-11"))
+          SU2_MPI::Error("The GAS_MODEL given as input is not valid. Choose one of the options: N2, AIR-5, AIR-7, AIR-11, ARGON.", CURRENT_FUNCTION);
         }
         cout << "Turbulence model: ";
         switch (Kind_Turb_Model) {

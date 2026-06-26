@@ -603,7 +603,7 @@ CSU2TCLib::CSU2TCLib(const CConfig* config, unsigned short val_nDim, bool viscou
     Omega11(4,2,0) = -1.0885815E-03;  Omega11(4,2,1) = 1.1883688E-02;   Omega11(4,2,2) = -2.1844909E-01;  Omega11(4,2,3) = 7.5512560E+01;
     Omega11(4,3,0) = -7.8147689E-03;  Omega11(4,3,1) = 1.6792705E-01;   Omega11(4,3,2) = -1.4308628E+00;  Omega11(4,3,3) = 1.6628859E+03;
     Omega11(4,4,0) = -6.4040535E-03;  Omega11(4,4,1) = 1.4629949E-01;   Omega11(4,4,2) = -1.3892121E+00;  Omega11(4,4,3) = 2.0903441E+03;
- 
+
     // Omega^(2,2) ----------------------
     //N2
     Omega22(0,0,0) = -7.6303990E-03;  Omega22(0,0,1) = 1.6878089E-01;   Omega22(0,0,2) = -1.4004234E+00;  Omega22(0,0,3) = 2.1427708E+03;
@@ -1145,6 +1145,963 @@ CSU2TCLib::CSU2TCLib(const CConfig* config, unsigned short val_nDim, bool viscou
     CatRecombTable(4,0) = -1; CatRecombTable(4,1) = 4;
     CatRecombTable(5,0) = -1; CatRecombTable(5,1) = 5;
     CatRecombTable(6,0) =  0; CatRecombTable(6,1) = 1;
+
+    /*--- Values for Sutherland's formula. ---*/
+    if (viscous) {
+      //F.M. White, Viscous Fluid Flow, 3rd ed., McGraw-Hill, 2006.
+      k_ref[0] = 0.0241;
+      mu_ref[0] = 1.716E-5;
+      Sm_ref[0] = 111.0;
+      Sk_ref[0] = 194.0;
+    }
+  } else if (gas_model == "AIR-11"){
+
+    /*--- Check for errors in the initialization ---*/
+    if (nSpecies != 11) {
+      SU2_MPI::Error("CONFIG ERROR: nSpecies mismatch between gas model & gas composition", CURRENT_FUNCTION);
+    }
+
+    mf = 0.0;
+    for (iSpecies = 0; iSpecies < nSpecies; iSpecies++)
+      mf += MassFrac_Freestream[iSpecies];
+    if (mf != 1.0) {
+      SU2_MPI::Error("CONFIG ERROR: Intial gas mass fractions do not sum to 1!", CURRENT_FUNCTION);
+    }
+
+    /*--- Define parameters of the gas model ---*/
+    gamma       = 1.4;
+    nReactions  = 49;
+    ionization  = true;
+
+    Reactions.resize(nReactions,2,6,0.0);
+    ArrheniusCoefficient.resize(nReactions,0.0);
+    ArrheniusEta.resize(nReactions,0.0);
+    ArrheniusTheta.resize(nReactions,0.0);
+    Tcf_a.resize(nReactions,0.0);
+    Tcf_b.resize(nReactions,0.0);
+    Tcb_a.resize(nReactions,0.0);
+    Tcb_b.resize(nReactions,0.0);
+
+    /*--- Assign gas properties ---*/
+    // Rotational modes of energy storage
+    RotationModes[0] = 0.0; // e-
+    RotationModes[1] = 2.0; // N2
+    RotationModes[2] = 2.0; // O2
+    RotationModes[3] = 2.0; // NO
+    RotationModes[4] = 0.0; // N
+    RotationModes[5] = 0.0; // O
+    RotationModes[6] = 2.0; // NO+
+    RotationModes[7] = 2.0; // N2+
+    RotationModes[8] = 2.0; // O2+
+    RotationModes[9] = 0.0; // N+
+    RotationModes[10]= 0.0; // O+
+
+    // Molar mass [kg/kmol]
+    MolarMass[0] = 5.4858E-04;      // e-
+    MolarMass[1] = 2.0*14.0067;     // N2
+    MolarMass[2] = 2.0*15.9994;     // O2
+    MolarMass[3] = 14.0067+15.9994; // NO
+    MolarMass[4] = 14.0067;         // N
+    MolarMass[5] = 15.9994;         // O
+    MolarMass[6] = 14.0067+15.9994 - 5.4858E-04; // NO+
+    MolarMass[7] = 2.0*14.0067     - 5.4858E-04; // N2+
+    MolarMass[8] = 2.0*15.9994     - 5.4858E-04; // O2+
+    MolarMass[9] = 14.0067         - 5.4858E-04; // N+
+    MolarMass[10]= 15.9994         - 5.4858E-04; // O+
+
+    //Characteristic vibrational temperatures
+    CharVibTemp[0] = 0.0;    // e-
+    CharVibTemp[1] = 3408.464; // N2
+    CharVibTemp[2] = 2276.979; // O2
+    CharVibTemp[3] = 2759.293; // NO
+    CharVibTemp[4] = 0.0;    // N
+    CharVibTemp[5] = 0.0;    // O
+    CharVibTemp[6] = 3473.491; // NO+
+    CharVibTemp[7] = 3253.157; // N2+
+    CharVibTemp[8] = 2887.139; // O2+
+    CharVibTemp[9] = 0.0;    // N+
+    CharVibTemp[10]= 0.0;    // O+
+
+    // Formation enthalpy: (Scalabrin values, J/kg)
+    Enthalpy_Formation[0] = 0.0;    // e-
+    Enthalpy_Formation[1] = 0.0;    // N2
+    Enthalpy_Formation[2] = 0.0;    // O2
+    Enthalpy_Formation[3] = 3.0357E6;  // NO
+    Enthalpy_Formation[4] = 3.373E7; // N
+    Enthalpy_Formation[5] = 1.5577E7; // O
+    Enthalpy_Formation[6] = 3.3016E7; // NO+
+    Enthalpy_Formation[7] = 5.3886E7;  // N2+
+    Enthalpy_Formation[8] = 3.6609E7;  // O2+
+    Enthalpy_Formation[9] = 1.3436E8;  // N+
+    Enthalpy_Formation[10]= 9.8059E7;  // O+
+
+    // Reference temperature (JANAF values, [K])
+    Ref_Temperature[0] = 0.0;
+    Ref_Temperature[1] = 0.0;
+    Ref_Temperature[2] = 0.0;
+    Ref_Temperature[3] = 0.0;
+    Ref_Temperature[4] = 0.0;
+    Ref_Temperature[5] = 0.0;
+    Ref_Temperature[6] = 0.0;
+    Ref_Temperature[7] = 0.0;
+    Ref_Temperature[8] = 0.0;
+    Ref_Temperature[9] = 0.0;
+    Ref_Temperature[10]= 0.0;
+
+    // Blottner viscosity coefficients
+    // A                        // B                        // C
+    Blottner(0,0) = 0.00E+0;   Blottner(0,1) =  0.00E+0;  Blottner(0,2) = -1.20E1;  // e-
+    Blottner(1,0) = 2.68E-2;   Blottner(1,1) =  3.18E-1;  Blottner(1,2) = -1.13E1;  // N2
+    Blottner(2,0) = 4.49E-2;   Blottner(2,1) = -8.26E-2;  Blottner(2,2) = -9.20E0;  // O2
+    Blottner(3,0) = 4.36E-2;   Blottner(3,1) = -3.36E-2;  Blottner(3,2) = -9.58E0;  // NO
+    Blottner(4,0) = 1.16E-2;   Blottner(4,1) =  6.03E-1;  Blottner(4,2) = -1.24E1;  // N
+    Blottner(5,0) = 2.03E-2;   Blottner(5,1) =  4.29E-1;  Blottner(5,2) = -1.16E1;  // O
+    Blottner(6,0) = 3.02E-1;   Blottner(6,1) =  -3.50E0;  Blottner(6,2) = -3.74E0;  // NO+
+    //Check the following Blottner values are just copied, not used in the code
+    Blottner(7,0)  = 2.68E-2;  Blottner(7,1)  =  3.18E-1;  Blottner(7,2)  = -1.13E1; // N2+
+    Blottner(8,0)  = 4.49E-2;  Blottner(8,1)  = -8.26E-2;  Blottner(8,2)  = -9.20E0; // O2+
+    Blottner(9,0)  = 1.16E-2;  Blottner(9,1)  =  6.03E-1;  Blottner(9,2)  = -1.24E1; // N+
+    Blottner(10,0) = 2.03E-2;  Blottner(10,1) =  4.29E-1;  Blottner(10,2) = -1.16E1; // O+
+
+    // Number of electron states
+    nElStates[0] = 1;  // e-
+    nElStates[1] = 15; // N2
+    nElStates[2] = 7;  // O2
+    nElStates[3] = 16; // NO
+    nElStates[4] = 3;  // N
+    nElStates[5] = 5;  // O
+    nElStates[6] = 8;  // NO+
+    nElStates[7] = 9;  // N2+
+    nElStates[8] = 5;  // O2+
+    nElStates[9] = 9;  // N+
+    nElStates[10]= 5;  // O+
+
+    for (iSpecies = 0; iSpecies < nSpecies; iSpecies++)
+      maxEl = max(maxEl, nElStates[iSpecies]);
+
+    /*--- Allocate and initialize electron data arrays ---*/
+    CharElTemp.resize(nSpecies,maxEl) = su2double(0.0);
+    ElDegeneracy.resize(nSpecies,maxEl) = su2double(0.0);
+
+    // e: 1 state
+    CharElTemp(0,0) = 0.000000000000000E+00;
+    ElDegeneracy(0,0) = 1;
+
+    //N2: 15 states
+    CharElTemp(1,0)  = 0.000000000000000E+00;
+    CharElTemp(1,1)  = 7.223156514095200E+04;
+    CharElTemp(1,2)  = 8.577862640384000E+04;
+    CharElTemp(1,3)  = 8.605026716160000E+04;
+    CharElTemp(1,4)  = 9.535118627874400E+04;
+    CharElTemp(1,5)  = 9.805635702203200E+04;
+    CharElTemp(1,6)  = 9.968267656935200E+04;
+    CharElTemp(1,7)  = 1.048976467715200E+05;
+    CharElTemp(1,8)  = 1.116489555200000E+05;
+    CharElTemp(1,9)  = 1.225836470400000E+05;
+    CharElTemp(1,10) = 1.248856873600000E+05;
+    CharElTemp(1,11) = 1.282476158188320E+05;
+    CharElTemp(1,12) = 1.338060936000000E+05;
+    CharElTemp(1,13) = 1.404296391107200E+05;
+    CharElTemp(1,14) = 1.504958859200000E+05;
+    ElDegeneracy(1,0)  = 1;
+    ElDegeneracy(1,1)  = 3;
+    ElDegeneracy(1,2)  = 6;
+    ElDegeneracy(1,3)  = 6;
+    ElDegeneracy(1,4)  = 3;
+    ElDegeneracy(1,5)  = 1;
+    ElDegeneracy(1,6)  = 2;
+    ElDegeneracy(1,7)  = 2;
+    ElDegeneracy(1,8)  = 5;
+    ElDegeneracy(1,9)  = 1;
+    ElDegeneracy(1,10) = 6;
+    ElDegeneracy(1,11) = 6;
+    ElDegeneracy(1,12) = 10;
+    ElDegeneracy(1,13) = 6;
+    ElDegeneracy(1,14) = 6;
+    // O2: 7 states
+    CharElTemp(2,0) = 0.000000000000000E+00;
+    CharElTemp(2,1) = 1.139156019700800E+04;
+    CharElTemp(2,2) = 1.898473947826400E+04;
+    CharElTemp(2,3) = 4.755973576639200E+04;
+    CharElTemp(2,4) = 4.991242097343200E+04;
+    CharElTemp(2,5) = 5.092268575561600E+04;
+    CharElTemp(2,6) = 7.189863255967200E+04;
+    ElDegeneracy(2,0) = 3;
+    ElDegeneracy(2,1) = 2;
+    ElDegeneracy(2,2) = 1;
+    ElDegeneracy(2,3) = 1;
+    ElDegeneracy(2,4) = 6;
+    ElDegeneracy(2,5) = 3;
+    ElDegeneracy(2,6) = 3;
+    // NO: 16 states
+    CharElTemp(3,0)  = 0.000000000000000E+00;
+    CharElTemp(3,1)  = 5.467345760000000E+04;
+    CharElTemp(3,2)  = 6.317139627802400E+04;
+    CharElTemp(3,3)  = 6.599450342445600E+04;
+    CharElTemp(3,4)  = 6.906120960000000E+04;
+    CharElTemp(3,5)  = 7.049998480000000E+04;
+    CharElTemp(3,6)  = 7.491055017560000E+04;
+    CharElTemp(3,7)  = 7.628875293968000E+04;
+    CharElTemp(3,8)  = 8.676188537552000E+04;
+    CharElTemp(3,9)  = 8.714431182368000E+04;
+    CharElTemp(3,10) = 8.886077063728000E+04;
+    CharElTemp(3,11) = 8.981755614528000E+04;
+    CharElTemp(3,12) = 8.988445919208000E+04;
+    CharElTemp(3,13) = 9.042702132000000E+04;
+    CharElTemp(3,14) = 9.064283760000000E+04;
+    CharElTemp(3,15) = 9.111763341600000E+04;
+    ElDegeneracy(3,0)  = 4;
+    ElDegeneracy(3,1)  = 8;
+    ElDegeneracy(3,2)  = 2;
+    ElDegeneracy(3,3)  = 4;
+    ElDegeneracy(3,4)  = 4;
+    ElDegeneracy(3,5)  = 4;
+    ElDegeneracy(3,6)  = 4;
+    ElDegeneracy(3,7)  = 2;
+    ElDegeneracy(3,8)  = 4;
+    ElDegeneracy(3,9)  = 2;
+    ElDegeneracy(3,10) = 4;
+    ElDegeneracy(3,11) = 4;
+    ElDegeneracy(3,12) = 2;
+    ElDegeneracy(3,13) = 2;
+    ElDegeneracy(3,14) = 2;
+    ElDegeneracy(3,15) = 4;
+    // N: 3 states
+    CharElTemp(4,0) = 0.000000000000000E+00;
+    CharElTemp(4,1) = 2.766469645581980E+04;
+    CharElTemp(4,2) = 4.149309313560210E+04;
+    ElDegeneracy(4,0)= 4;
+    ElDegeneracy(4,1)= 10;
+    ElDegeneracy(4,2)= 6;
+    // O: 5 states
+    CharElTemp(5,0) = 0.000000000000000E+00;
+    CharElTemp(5,1) = 2.277077570280000E+02;
+    CharElTemp(5,2) = 3.265688785704000E+02;
+    CharElTemp(5,3) = 2.283028632262240E+04;
+    CharElTemp(5,4) = 4.861993036434160E+04;
+    ElDegeneracy(5,0) = 5;
+    ElDegeneracy(5,1) = 3;
+    ElDegeneracy(5,2) = 1;
+    ElDegeneracy(5,3) = 5;
+    ElDegeneracy(5,4) = 1;
+    // NO+: 8 states
+    CharElTemp(6,0) = 0.000000000000000E+00;
+    CharElTemp(6,1) = 7.508967768800000E+04;
+    CharElTemp(6,2) = 8.525462447600000E+04;
+    CharElTemp(6,3) = 8.903572570160000E+04;
+    CharElTemp(6,4) = 9.746982592400000E+04;
+    CharElTemp(6,5) = 1.000553049584000E+05;
+    CharElTemp(6,6) = 1.028033655904000E+05;
+    CharElTemp(6,7) = 1.057138639424800E+05;
+    ElDegeneracy(6,0) = 1;
+    ElDegeneracy(6,1) = 3;
+    ElDegeneracy(6,2) = 6;
+    ElDegeneracy(6,3) = 6;
+    ElDegeneracy(6,4) = 3;
+    ElDegeneracy(6,5) = 1;
+    ElDegeneracy(6,6) = 2;
+    ElDegeneracy(6,7) = 2;
+
+    // N2+: 9 states
+    CharElTemp(7,0) = 0.000000000000000E+00;
+    CharElTemp(7,1) = 1.318926784230000E+04;
+    CharElTemp(7,2) = 3.663269865090000E+04;
+    CharElTemp(7,3) = 3.668881095000000E+04;
+    CharElTemp(7,4) = 5.985311904000000E+04;
+    CharElTemp(7,5) = 6.618373740000000E+04;
+    CharElTemp(7,6) = 7.598900197350000E+04;
+    CharElTemp(7,7) = 7.625517570000000E+04;
+    CharElTemp(7,8) = 8.201028330000000E+04;
+    ElDegeneracy(7,0) = 2;
+    ElDegeneracy(7,1) = 4;
+    ElDegeneracy(7,2) = 2;
+    ElDegeneracy(7,3) = 4;
+    ElDegeneracy(7,4) = 8;
+    ElDegeneracy(7,5) = 8;
+    ElDegeneracy(7,6) = 4;
+    ElDegeneracy(7,7) = 4;
+    ElDegeneracy(7,8) = 4;
+
+    // O2+: 5 states
+    CharElTemp(8,0) = 0.000000000000000E+00;
+    CharElTemp(8,1) = 4.735446410970000E+04;
+    CharElTemp(8,2) = 5.837405638680000E+04;
+    CharElTemp(8,3) = 5.841434214000000E+04;
+    CharElTemp(8,4) = 6.229903977000000E+04;
+    ElDegeneracy(8,0) = 4;
+    ElDegeneracy(8,1) = 8;
+    ElDegeneracy(8,2) = 4;
+    ElDegeneracy(8,3) = 4;
+    ElDegeneracy(8,4) = 6;
+
+    // N+: 9 states
+    CharElTemp(9,0) = 0.000000000000000E+00;
+    CharElTemp(9,1) = 7.006843503000000E+01;
+    CharElTemp(9,2) = 1.881920185200000E+02;
+    CharElTemp(9,3) = 2.203659475578000E+04;
+    CharElTemp(9,4) = 4.703189032872000E+04;
+    CharElTemp(9,5) = 6.731260175574000E+04;
+    CharElTemp(9,6) = 1.327087526806800E+05;
+    CharElTemp(9,7) = 1.327276006580700E+05;
+    CharElTemp(9,8) = 1.327297588234200E+05;
+    ElDegeneracy(9,0) = 1;
+    ElDegeneracy(9,1) = 3;
+    ElDegeneracy(9,2) = 5;
+    ElDegeneracy(9,3) = 5;
+    ElDegeneracy(9,4) = 1;
+    ElDegeneracy(9,5) = 5;
+    ElDegeneracy(9,6) = 7;
+    ElDegeneracy(9,7) = 5;
+    ElDegeneracy(9,8) = 3;
+
+    // O+: 5 states
+    CharElTemp(10,0) = 0.000000000000000E+00;
+    CharElTemp(10,1) = 3.857130664596000E+04;
+    CharElTemp(10,2) = 3.860152096086000E+04;
+    CharElTemp(10,3) = 5.822284093461000E+04;
+    CharElTemp(10,4) = 5.822499909996000E+04;
+    ElDegeneracy(10,0) = 4;
+    ElDegeneracy(10,1) = 6;
+    ElDegeneracy(10,2) = 4;
+    ElDegeneracy(10,3) = 4;
+    ElDegeneracy(10,4) = 2;
+
+    /*--- Set reaction maps ---*/
+    // N2 dissociation    // N2 + M -> 2N + M  (M = N2, O2, NO, N, O, NO+, N2+, O2+, N+, O+)
+    Reactions(0,0,0)=1;   Reactions(0,0,1)=1;   Reactions(0,0,2)=nSpecies;   Reactions(0,1,0)=4;   Reactions(0,1,1)=4;   Reactions(0,1,2)=1;
+    Reactions(1,0,0)=1;   Reactions(1,0,1)=2;   Reactions(1,0,2)=nSpecies;   Reactions(1,1,0)=4;   Reactions(1,1,1)=4;   Reactions(1,1,2)=2;
+    Reactions(2,0,0)=1;   Reactions(2,0,1)=3;   Reactions(2,0,2)=nSpecies;   Reactions(2,1,0)=4;   Reactions(2,1,1)=4;   Reactions(2,1,2)=3;
+    Reactions(3,0,0)=1;   Reactions(3,0,1)=4;   Reactions(3,0,2)=nSpecies;   Reactions(3,1,0)=4;   Reactions(3,1,1)=4;   Reactions(3,1,2)=4;
+    Reactions(4,0,0)=1;   Reactions(4,0,1)=5;   Reactions(4,0,2)=nSpecies;   Reactions(4,1,0)=4;   Reactions(4,1,1)=4;   Reactions(4,1,2)=5;
+    Reactions(5,0,0)=1;   Reactions(5,0,1)=6;   Reactions(5,0,2)=nSpecies;   Reactions(5,1,0)=4;   Reactions(5,1,1)=4;   Reactions(5,1,2)=6;
+    Reactions(6,0,0)=1;   Reactions(6,0,1)=7;   Reactions(6,0,2)=nSpecies;   Reactions(6,1,0)=4;   Reactions(6,1,1)=4;   Reactions(6,1,2)=7;
+    Reactions(7,0,0)=1;   Reactions(7,0,1)=8;   Reactions(7,0,2)=nSpecies;   Reactions(7,1,0)=4;   Reactions(7,1,1)=4;   Reactions(7,1,2)=8;
+    Reactions(8,0,0)=1;   Reactions(8,0,1)=9;   Reactions(8,0,2)=nSpecies;   Reactions(8,1,0)=4;   Reactions(8,1,1)=4;   Reactions(8,1,2)=9;
+    Reactions(9,0,0)=1;   Reactions(9,0,1)=10;  Reactions(9,0,2)=nSpecies;   Reactions(9,1,0)=4;   Reactions(9,1,1)=4;   Reactions(9,1,2)=10;
+
+    // O2 dissociation    // O2 + M -> 2O + M  (M = N2, O2, NO, N, O, NO+, N2+, O2+, N+, O+)
+    Reactions(10,0,0)=2;   Reactions(10,0,1)=1;   Reactions(10,0,2)=nSpecies;   Reactions(10,1,0)=5;   Reactions(10,1,1)=5;   Reactions(10,1,2)=1;
+    Reactions(11,0,0)=2;   Reactions(11,0,1)=2;   Reactions(11,0,2)=nSpecies;   Reactions(11,1,0)=5;   Reactions(11,1,1)=5;   Reactions(11,1,2)=2;
+    Reactions(12,0,0)=2;   Reactions(12,0,1)=3;   Reactions(12,0,2)=nSpecies;   Reactions(12,1,0)=5;   Reactions(12,1,1)=5;   Reactions(12,1,2)=3;
+    Reactions(13,0,0)=2;   Reactions(13,0,1)=4;   Reactions(13,0,2)=nSpecies;   Reactions(13,1,0)=5;   Reactions(13,1,1)=5;   Reactions(13,1,2)=4;
+    Reactions(14,0,0)=2;   Reactions(14,0,1)=5;   Reactions(14,0,2)=nSpecies;   Reactions(14,1,0)=5;   Reactions(14,1,1)=5;   Reactions(14,1,2)=5;
+    Reactions(15,0,0)=2;   Reactions(15,0,1)=6;   Reactions(15,0,2)=nSpecies;   Reactions(15,1,0)=5;   Reactions(15,1,1)=5;   Reactions(15,1,2)=6;
+    Reactions(16,0,0)=2;   Reactions(16,0,1)=7;   Reactions(16,0,2)=nSpecies;   Reactions(16,1,0)=5;   Reactions(16,1,1)=5;   Reactions(16,1,2)=7;
+    Reactions(17,0,0)=2;   Reactions(17,0,1)=8;   Reactions(17,0,2)=nSpecies;   Reactions(17,1,0)=5;   Reactions(17,1,1)=5;   Reactions(17,1,2)=8;
+    Reactions(18,0,0)=2;   Reactions(18,0,1)=9;   Reactions(18,0,2)=nSpecies;   Reactions(18,1,0)=5;   Reactions(18,1,1)=5;   Reactions(18,1,2)=9;
+    Reactions(19,0,0)=2;   Reactions(19,0,1)=10;  Reactions(19,0,2)=nSpecies;   Reactions(19,1,0)=5;   Reactions(19,1,1)=5;   Reactions(19,1,2)=10;
+
+    // NO dissociation    // NO + M -> N + O + M  (M = N2, O2, NO, N, O, NO+, N2+, O2+, N+, O+)
+    Reactions(20,0,0)=3;   Reactions(20,0,1)=1;   Reactions(20,0,2)=nSpecies;   Reactions(20,1,0)=4;   Reactions(20,1,1)=5;   Reactions(20,1,2)=1;
+    Reactions(21,0,0)=3;   Reactions(21,0,1)=2;   Reactions(21,0,2)=nSpecies;   Reactions(21,1,0)=4;   Reactions(21,1,1)=5;   Reactions(21,1,2)=2;
+    Reactions(22,0,0)=3;   Reactions(22,0,1)=3;   Reactions(22,0,2)=nSpecies;   Reactions(22,1,0)=4;   Reactions(22,1,1)=5;   Reactions(22,1,2)=3;
+    Reactions(23,0,0)=3;   Reactions(23,0,1)=4;   Reactions(23,0,2)=nSpecies;   Reactions(23,1,0)=4;   Reactions(23,1,1)=5;   Reactions(23,1,2)=4;
+    Reactions(24,0,0)=3;   Reactions(24,0,1)=5;   Reactions(24,0,2)=nSpecies;   Reactions(24,1,0)=4;   Reactions(24,1,1)=5;   Reactions(24,1,2)=5;
+    Reactions(25,0,0)=3;   Reactions(25,0,1)=6;   Reactions(25,0,2)=nSpecies;   Reactions(25,1,0)=4;   Reactions(25,1,1)=5;   Reactions(25,1,2)=6;
+    Reactions(26,0,0)=3;   Reactions(26,0,1)=7;   Reactions(26,0,2)=nSpecies;   Reactions(26,1,0)=4;   Reactions(26,1,1)=5;   Reactions(26,1,2)=7;
+    Reactions(27,0,0)=3;   Reactions(27,0,1)=8;   Reactions(27,0,2)=nSpecies;   Reactions(27,1,0)=4;   Reactions(27,1,1)=5;   Reactions(27,1,2)=8;
+    Reactions(28,0,0)=3;   Reactions(28,0,1)=9;   Reactions(28,0,2)=nSpecies;   Reactions(28,1,0)=4;   Reactions(28,1,1)=5;   Reactions(28,1,2)=9;
+    Reactions(29,0,0)=3;   Reactions(29,0,1)=10;  Reactions(29,0,2)=nSpecies;   Reactions(29,1,0)=4;   Reactions(29,1,1)=5;   Reactions(29,1,2)=10;
+
+    // N2 + O -> NO + N
+    Reactions(30,0,0)=1;   Reactions(30,0,1)=5;   Reactions(30,0,2)=nSpecies;   Reactions(30,1,0)=3;   Reactions(30,1,1)=4;   Reactions(30,1,2)=nSpecies;
+    // NO + O -> O2 + N
+    Reactions(31,0,0)=3;   Reactions(31,0,1)=5;   Reactions(31,0,2)=nSpecies;   Reactions(31,1,0)=2;   Reactions(31,1,1)=4;   Reactions(31,1,2)=nSpecies;
+    //N + O -> NO+ + e
+    Reactions(32,0,0)=4;   Reactions(32,0,1)=5;   Reactions(32,0,2)=nSpecies;   Reactions(32,1,0)=6;   Reactions(32,1,1)=0;   Reactions(32,1,2)=nSpecies;
+    //N2 + e -> N + N + e
+    Reactions(33,0,0)=1;   Reactions(33,0,1)=0;   Reactions(33,0,2)=nSpecies;   Reactions(33,1,0)=4;   Reactions(33,1,1)=4;   Reactions(33,1,2)=0;
+
+    // O + O -> O2+ + e-
+    Reactions(34,0,0)=5;   Reactions(34,0,1)=5;   Reactions(34,0,2)=nSpecies;   Reactions(34,1,0)=8;   Reactions(34,1,1)=0;   Reactions(34,1,2)=nSpecies;
+
+    // N + N -> N2+ + e-
+    Reactions(35,0,0)=4;   Reactions(35,0,1)=4;   Reactions(35,0,2)=nSpecies;   Reactions(35,1,0)=7;   Reactions(35,1,1)=0;   Reactions(35,1,2)=nSpecies;
+
+    // NO+ + O -> N+ + O2
+    Reactions(36,0,0)=6;   Reactions(36,0,1)=5;   Reactions(36,0,2)=nSpecies;   Reactions(36,1,0)=9;   Reactions(36,1,1)=2;   Reactions(36,1,2)=nSpecies;
+
+    // N+ + N2 -> N2+ + N
+    Reactions(37,0,0)=9;   Reactions(37,0,1)=1;   Reactions(37,0,2)=nSpecies;   Reactions(37,1,0)=7;   Reactions(37,1,1)=4;   Reactions(37,1,2)=nSpecies;
+
+    // O2+ + N -> N+ + O2
+    Reactions(38,0,0)=8;   Reactions(38,0,1)=4;   Reactions(38,0,2)=nSpecies;   Reactions(38,1,0)=9;   Reactions(38,1,1)=2;   Reactions(38,1,2)=nSpecies;
+
+    // O+ + NO -> N+ + O2
+    Reactions(39,0,0)=10;  Reactions(39,0,1)=3;   Reactions(39,0,2)=nSpecies;   Reactions(39,1,0)=9;   Reactions(39,1,1)=2;   Reactions(39,1,2)=nSpecies;
+
+    // O2+ + N2 -> N2+ + O2
+    Reactions(40,0,0)=8;   Reactions(40,0,1)=1;   Reactions(40,0,2)=nSpecies;   Reactions(40,1,0)=7;   Reactions(40,1,1)=2;   Reactions(40,1,2)=nSpecies;
+
+    // O2+ + O -> O+ + O2
+    Reactions(41,0,0)=8;   Reactions(41,0,1)=5;   Reactions(41,0,2)=nSpecies;   Reactions(41,1,0)=10;  Reactions(41,1,1)=2;   Reactions(41,1,2)=nSpecies;
+
+    // NO+ + N -> O+ + N2
+    Reactions(42,0,0)=6;   Reactions(42,0,1)=4;   Reactions(42,0,2)=nSpecies;   Reactions(42,1,0)=10;  Reactions(42,1,1)=1;   Reactions(42,1,2)=nSpecies;
+
+    // NO+ + O2 -> O2+ + NO
+    Reactions(43,0,0)=6;   Reactions(43,0,1)=2;   Reactions(43,0,2)=nSpecies;   Reactions(43,1,0)=8;   Reactions(43,1,1)=3;   Reactions(43,1,2)=nSpecies;
+
+    // NO+ + O -> O2+ + N
+    Reactions(44,0,0)=6;   Reactions(44,0,1)=5;   Reactions(44,0,2)=nSpecies;   Reactions(44,1,0)=8;   Reactions(44,1,1)=4;   Reactions(44,1,2)=nSpecies;
+
+    // O+ + N2 -> N2+ + O
+    Reactions(45,0,0)=10;  Reactions(45,0,1)=1;   Reactions(45,0,2)=nSpecies;   Reactions(45,1,0)=7;   Reactions(45,1,1)=5;   Reactions(45,1,2)=nSpecies;
+
+    // NO+ + N -> N2+ + O
+    Reactions(46,0,0)=6;   Reactions(46,0,1)=4;   Reactions(46,0,2)=nSpecies;   Reactions(46,1,0)=7;   Reactions(46,1,1)=5;   Reactions(46,1,2)=nSpecies;
+
+    // O + e- -> O+ + e- + e-
+    Reactions(47,0,0)=5;   Reactions(47,0,1)=0;   Reactions(47,0,2)=nSpecies;   Reactions(47,1,0)=10;  Reactions(47,1,1)=0;   Reactions(47,1,2)=0;
+
+    // N + e- -> N+ + e- + e-
+    Reactions(48,0,0)=4;   Reactions(48,0,1)=0;   Reactions(48,0,2)=nSpecies;   Reactions(48,1,0)=9;   Reactions(48,1,1)=0;   Reactions(48,1,2)=0;
+
+    /*--- Set Arrhenius coefficients for reactions ---*/
+    // Pre-exponential factor
+    ArrheniusCoefficient[0]  = 7.0E+21;   // M = N2,  eff = 1.0
+    ArrheniusCoefficient[1]  = 7.0E+21;   // M = O2,  eff = 1.0
+    ArrheniusCoefficient[2]  = 7.0E+21;   // M = NO,  eff = 1.0
+    ArrheniusCoefficient[3]  = 3.0E+22;   // M = N,   eff = 4.2857
+    ArrheniusCoefficient[4]  = 3.0E+22;   // M = O,   eff = 4.2857
+    ArrheniusCoefficient[5]  = 7.0E+21;   // M = NO+, eff = 1.0
+    ArrheniusCoefficient[6]  = 7.0E+21;   // M = N2+, eff = 1.0
+    ArrheniusCoefficient[7]  = 7.0E+21;   // M = O2+, eff = 1.0
+    ArrheniusCoefficient[8]  = 7.0E+21;   // M = N+,  eff = 1.0
+    ArrheniusCoefficient[9]  = 7.0E+21;   // M = O+,  eff = 1.0
+
+    ArrheniusCoefficient[10] = 2.0E+21;   // M = N2,  eff = 1.0
+    ArrheniusCoefficient[11] = 2.0E+21;   // M = O2,  eff = 1.0
+    ArrheniusCoefficient[12] = 2.0E+21;   // M = NO,  eff = 1.0
+    ArrheniusCoefficient[13] = 1.0E+22;   // M = N,   eff = 5.0
+    ArrheniusCoefficient[14] = 1.0E+22;   // M = O,   eff = 5.0
+    ArrheniusCoefficient[15] = 2.0E+21;   // M = NO+, eff = 1.0
+    ArrheniusCoefficient[16] = 2.0E+21;   // M = N2+, eff = 1.0
+    ArrheniusCoefficient[17] = 2.0E+21;   // M = O2+, eff = 1.0
+    ArrheniusCoefficient[18] = 2.0E+21;   // M = N+,  eff = 1.0
+    ArrheniusCoefficient[19] = 2.0E+21;   // M = O+,  eff = 1.0
+
+    ArrheniusCoefficient[20] = 5.0E+15;   // M = N2,  eff = 1.0
+    ArrheniusCoefficient[21] = 5.0E+15;   // M = O2,  eff = 1.0
+    ArrheniusCoefficient[22] = 1.1E+17;   // M = NO,  eff = 22.0
+    ArrheniusCoefficient[23] = 1.1E+17;   // M = N,   eff = 22.0
+    ArrheniusCoefficient[24] = 1.1E+17;   // M = O,   eff = 22.0
+    ArrheniusCoefficient[25] = 5.0E+15;   // M = NO+, eff = 1.0
+    ArrheniusCoefficient[26] = 5.0E+15;   // M = N2+, eff = 1.0
+    ArrheniusCoefficient[27] = 5.0E+15;   // M = O2+, eff = 1.0
+    ArrheniusCoefficient[28] = 1.1E+17;   // M = N+,  eff = 22.0
+    ArrheniusCoefficient[29] = 1.1E+17;   // M = O+,  eff = 22.0
+
+    // Rate-controlling temperature exponent
+    ArrheniusEta[0]  = -1.6;   ArrheniusTheta[0]  = 113200.0;
+    ArrheniusEta[1]  = -1.6;   ArrheniusTheta[1]  = 113200.0;
+    ArrheniusEta[2]  = -1.6;   ArrheniusTheta[2]  = 113200.0;
+    ArrheniusEta[3]  = -1.6;   ArrheniusTheta[3]  = 113200.0;
+    ArrheniusEta[4]  = -1.6;   ArrheniusTheta[4]  = 113200.0;
+    ArrheniusEta[5]  = -1.6;   ArrheniusTheta[5]  = 113200.0;
+    ArrheniusEta[6]  = -1.6;   ArrheniusTheta[6]  = 113200.0;
+    ArrheniusEta[7]  = -1.6;   ArrheniusTheta[7]  = 113200.0;
+    ArrheniusEta[8]  = -1.6;   ArrheniusTheta[8]  = 113200.0;
+    ArrheniusEta[9]  = -1.6;   ArrheniusTheta[9]  = 113200.0;
+
+    ArrheniusEta[10] = -1.5;   ArrheniusTheta[10] = 59360.0;
+    ArrheniusEta[11] = -1.5;   ArrheniusTheta[11] = 59360.0;
+    ArrheniusEta[12] = -1.5;   ArrheniusTheta[12] = 59360.0;
+    ArrheniusEta[13] = -1.5;   ArrheniusTheta[13] = 59360.0;
+    ArrheniusEta[14] = -1.5;   ArrheniusTheta[14] = 59360.0;
+    ArrheniusEta[15] = -1.5;   ArrheniusTheta[15] = 59360.0;
+    ArrheniusEta[16] = -1.5;   ArrheniusTheta[16] = 59360.0;
+    ArrheniusEta[17] = -1.5;   ArrheniusTheta[17] = 59360.0;
+    ArrheniusEta[18] = -1.5;   ArrheniusTheta[18] = 59360.0;
+    ArrheniusEta[19] = -1.5;   ArrheniusTheta[19] = 59360.0;
+
+    ArrheniusEta[20] = 0.0;   ArrheniusTheta[20] = 75500.0;
+    ArrheniusEta[21] = 0.0;   ArrheniusTheta[21] = 75500.0;
+    ArrheniusEta[22] = 0.0;   ArrheniusTheta[22] = 75500.0;
+    ArrheniusEta[23] = 0.0;   ArrheniusTheta[23] = 75500.0;
+    ArrheniusEta[24] = 0.0;   ArrheniusTheta[24] = 75500.0;
+    ArrheniusEta[25] = 0.0;   ArrheniusTheta[25] = 75500.0;
+    ArrheniusEta[26] = 0.0;   ArrheniusTheta[26] = 75500.0;
+    ArrheniusEta[27] = 0.0;   ArrheniusTheta[27] = 75500.0;
+    ArrheniusEta[28] = 0.0;   ArrheniusTheta[28] = 75500.0;
+    ArrheniusEta[29] = 0.0;   ArrheniusTheta[29] = 75500.0;
+
+    // Reaction 30: N2 + O -> NO + N
+    ArrheniusCoefficient[30] = 5.7E+12;
+    ArrheniusEta[30]         = 0.42;
+    ArrheniusTheta[30]       = 42938.0;
+
+    // Reaction 31: NO + O -> O2 + N
+    ArrheniusCoefficient[31] = 8.4E+12;
+    ArrheniusEta[31]         = 0.0;
+    ArrheniusTheta[31]       = 19400.0;
+
+    // Reaction 32: N + O -> NO+ + e-
+    ArrheniusCoefficient[32] = 5.3E+12;
+    ArrheniusEta[32]         = 0.0;
+    ArrheniusTheta[32]       = 31900.0;
+
+    // Reaction 33: N2 + e- -> 2N + e-
+    ArrheniusCoefficient[33] = 3.0E+24;
+    ArrheniusEta[33]         = -1.6;
+    ArrheniusTheta[33]       = 113200.0;
+
+    // Reaction 34: O + O -> O2+ + e-
+    ArrheniusCoefficient[34] = 7.1E+02;
+    ArrheniusEta[34]         = 2.7;
+    ArrheniusTheta[34]       = 80600.0;
+
+    // Reaction 35: N + N -> N2+ + e-
+    ArrheniusCoefficient[35] = 4.4E+07;
+    ArrheniusEta[35]         = 1.5;
+    ArrheniusTheta[35]       = 67500.0;
+
+    // Reaction 36: NO+ + O -> N+ + O2
+    ArrheniusCoefficient[36] = 1.0E+12;
+    ArrheniusEta[36]         = 0.5;
+    ArrheniusTheta[36]       = 77200.0;
+
+    // Reaction 37: N+ + N2 -> N2+ + N
+    ArrheniusCoefficient[37] = 1.0E+12;
+    ArrheniusEta[37]         = 0.5;
+    ArrheniusTheta[37]       = 12200.0;
+
+    // Reaction 38: O2+ + N -> N+ + O2
+    ArrheniusCoefficient[38] = 8.7E+13;
+    ArrheniusEta[38]         = 0.14;
+    ArrheniusTheta[38]       = 28600.0;
+
+    // Reaction 39: O+ + NO -> N+ + O2
+    ArrheniusCoefficient[39] = 1.4E+05;
+    ArrheniusEta[39]         = 1.9;
+    ArrheniusTheta[39]       = 26600.0;
+
+    // Reaction 40: O2+ + N2 -> N2+ + O2
+    ArrheniusCoefficient[40] = 9.9E+12;
+    ArrheniusEta[40]         = 0.0;
+    ArrheniusTheta[40]       = 40700.0;
+
+    // Reaction 41: O2+ + O -> O+ + O2
+    ArrheniusCoefficient[41] = 4.0E+12;
+    ArrheniusEta[41]         = 0.09;
+    ArrheniusTheta[41]       = 18000.0;
+
+    // Reaction 42: NO+ + N -> O+ + N2
+    ArrheniusCoefficient[42] = 3.4E+13;
+    ArrheniusEta[42]         = -1.08;
+    ArrheniusTheta[42]       = 12800.0;
+
+    // Reaction 43: NO+ + O2 -> O2+ + NO
+    ArrheniusCoefficient[43] = 2.4E+13;
+    ArrheniusEta[43]         = 0.41;
+    ArrheniusTheta[43]       = 32600.0;
+
+    // Reaction 44: NO+ + O -> O2+ + N
+    ArrheniusCoefficient[44] = 7.2E+12;
+    ArrheniusEta[44]         = 0.29;
+    ArrheniusTheta[44]       = 48600.0;
+
+    // Reaction 45: O+ + N2 -> N2+ + O
+    ArrheniusCoefficient[45] = 9.1E+11;
+    ArrheniusEta[45]         = 0.36;
+    ArrheniusTheta[45]       = 22800.0;
+
+    // Reaction 46: NO+ + N -> N2+ + O
+    ArrheniusCoefficient[46] = 7.2E+13;
+    ArrheniusEta[46]         = 0.0;
+    ArrheniusTheta[46]       = 35500.0;
+
+    // Reaction 47: O + e- -> O+ + e- + e-
+    ArrheniusCoefficient[47] = 3.9E+33;
+    ArrheniusEta[47]         = -3.78;
+    ArrheniusTheta[47]       = 158500.0;
+
+    // Reaction 48: N + e- -> N+ + e- + e-
+    ArrheniusCoefficient[48] = 2.5E+34;
+    ArrheniusEta[48]         = -3.82;
+    ArrheniusTheta[48]       = 168200.0;
+    /*--- Set rate-controlling temperature exponents ---*/
+    //  -----------  Tc = Ttr^a * Tve^b  -----------
+    //
+    // Forward Reactions
+    //   Dissociation:         a = 0.5, b = 0.5  (OR a = 0.7, b =0.3)
+    //   Exchange:             a = 1,   b = 0
+    //   Associative ion...    a = 1,   b = 0  ???
+    //   E Impact dissociation a = 0,   b = 1
+    //   E Impact ionization:  a = 0,   b = 1
+    //
+    // Backward Reactions
+    //   Dissociation:           a = 1,   b = 0
+    //   Exchange:               a = 1,   b = 0
+    //   Associative  ion...     a = 0.5, b = 0.5
+    //   E Impact ionization:    a = 0,   b = 1
+    //   E Impact dissocitation: a = 0.5, b = 0.5 ???
+    //   N2 impact dissociation: a = 0,   b = 1
+    //   Others:                 a = 1,   b = 0
+
+    // Reactions 0-9: N2+M dissociation
+     Tcf_a[0]  = 0.5; Tcf_b[0]  = 0.5; Tcb_a[0]  = 1.0; Tcb_b[0]  = 0.0;
+     Tcf_a[1]  = 0.5; Tcf_b[1]  = 0.5; Tcb_a[1]  = 1.0; Tcb_b[1]  = 0.0;
+     Tcf_a[2]  = 0.5; Tcf_b[2]  = 0.5; Tcb_a[2]  = 1.0; Tcb_b[2]  = 0.0;
+     Tcf_a[3]  = 0.5; Tcf_b[3]  = 0.5; Tcb_a[3]  = 1.0; Tcb_b[3]  = 0.0;
+     Tcf_a[4]  = 0.5; Tcf_b[4]  = 0.5; Tcb_a[4]  = 1.0; Tcb_b[4]  = 0.0;
+     Tcf_a[5]  = 0.5; Tcf_b[5]  = 0.5; Tcb_a[5]  = 1.0; Tcb_b[5]  = 0.0;
+     Tcf_a[6]  = 0.5; Tcf_b[6]  = 0.5; Tcb_a[6]  = 1.0; Tcb_b[6]  = 0.0;
+     Tcf_a[7]  = 0.5; Tcf_b[7]  = 0.5; Tcb_a[7]  = 1.0; Tcb_b[7]  = 0.0;
+     Tcf_a[8]  = 0.5; Tcf_b[8]  = 0.5; Tcb_a[8]  = 1.0; Tcb_b[8]  = 0.0;
+     Tcf_a[9]  = 0.5; Tcf_b[9]  = 0.5; Tcb_a[9]  = 1.0; Tcb_b[9]  = 0.0;
+
+     // Reactions 10-19: O2+M dissociation
+     Tcf_a[10] = 0.5; Tcf_b[10] = 0.5; Tcb_a[10] = 1.0; Tcb_b[10] = 0.0;
+     Tcf_a[11] = 0.5; Tcf_b[11] = 0.5; Tcb_a[11] = 1.0; Tcb_b[11] = 0.0;
+     Tcf_a[12] = 0.5; Tcf_b[12] = 0.5; Tcb_a[12] = 1.0; Tcb_b[12] = 0.0;
+     Tcf_a[13] = 0.5; Tcf_b[13] = 0.5; Tcb_a[13] = 1.0; Tcb_b[13] = 0.0;
+     Tcf_a[14] = 0.5; Tcf_b[14] = 0.5; Tcb_a[14] = 1.0; Tcb_b[14] = 0.0;
+     Tcf_a[15] = 0.5; Tcf_b[15] = 0.5; Tcb_a[15] = 1.0; Tcb_b[15] = 0.0;
+     Tcf_a[16] = 0.5; Tcf_b[16] = 0.5; Tcb_a[16] = 1.0; Tcb_b[16] = 0.0;
+     Tcf_a[17] = 0.5; Tcf_b[17] = 0.5; Tcb_a[17] = 1.0; Tcb_b[17] = 0.0;
+     Tcf_a[18] = 0.5; Tcf_b[18] = 0.5; Tcb_a[18] = 1.0; Tcb_b[18] = 0.0;
+     Tcf_a[19] = 0.5; Tcf_b[19] = 0.5; Tcb_a[19] = 1.0; Tcb_b[19] = 0.0;
+
+     // Reactions 20-29: NO+M dissociation
+     Tcf_a[20] = 0.5; Tcf_b[20] = 0.5; Tcb_a[20] = 1.0; Tcb_b[20] = 0.0;
+     Tcf_a[21] = 0.5; Tcf_b[21] = 0.5; Tcb_a[21] = 1.0; Tcb_b[21] = 0.0;
+     Tcf_a[22] = 0.5; Tcf_b[22] = 0.5; Tcb_a[22] = 1.0; Tcb_b[22] = 0.0;
+     Tcf_a[23] = 0.5; Tcf_b[23] = 0.5; Tcb_a[23] = 1.0; Tcb_b[23] = 0.0;
+     Tcf_a[24] = 0.5; Tcf_b[24] = 0.5; Tcb_a[24] = 1.0; Tcb_b[24] = 0.0;
+     Tcf_a[25] = 0.5; Tcf_b[25] = 0.5; Tcb_a[25] = 1.0; Tcb_b[25] = 0.0;
+     Tcf_a[26] = 0.5; Tcf_b[26] = 0.5; Tcb_a[26] = 1.0; Tcb_b[26] = 0.0;
+     Tcf_a[27] = 0.5; Tcf_b[27] = 0.5; Tcb_a[27] = 1.0; Tcb_b[27] = 0.0;
+     Tcf_a[28] = 0.5; Tcf_b[28] = 0.5; Tcb_a[28] = 1.0; Tcb_b[28] = 0.0;
+     Tcf_a[29] = 0.5; Tcf_b[29] = 0.5; Tcb_a[29] = 1.0; Tcb_b[29] = 0.0;
+
+    // Reaction 30: N2+O -> NO+N  (exchange)
+    Tcf_a[30] = 1.0; Tcf_b[30] = 0.0; Tcb_a[30] = 1.0; Tcb_b[30] = 0.0;
+
+    // Reaction 31: NO+O -> O2+N  (exchange)
+    Tcf_a[31] = 1.0; Tcf_b[31] = 0.0; Tcb_a[31] = 1.0; Tcb_b[31] = 0.0;
+
+    // Reaction 32: N+O -> NO++e-  (associative ionization)
+    Tcf_a[32] = 1.0; Tcf_b[32] = 0.0; Tcb_a[32] = 0.5; Tcb_b[32] = 0.5;
+
+    // Reaction 33: N2+e- -> 2N+e-  (electron impact dissociation)
+    Tcf_a[33] = 0.0; Tcf_b[33] = 1.0; Tcb_a[33] = 0.0; Tcb_b[33] = 1.0;
+
+    // Reaction 34: O+O -> O2++e-  (associative ionization)
+    Tcf_a[34] = 1.0; Tcf_b[34] = 0.0; Tcb_a[34] = 0.5; Tcb_b[34] = 0.5;
+
+    // Reaction 35: N+N -> N2++e-  (associative ionization)
+    Tcf_a[35] = 1.0; Tcf_b[35] = 0.0; Tcb_a[35] = 0.5; Tcb_b[35] = 0.5;
+
+    // Reactions 36-46: charge exchange
+    Tcf_a[36] = 1.0; Tcf_b[36] = 0.0; Tcb_a[36] = 1.0; Tcb_b[36] = 0.0;
+    Tcf_a[37] = 1.0; Tcf_b[37] = 0.0; Tcb_a[37] = 1.0; Tcb_b[37] = 0.0;
+    Tcf_a[38] = 1.0; Tcf_b[38] = 0.0; Tcb_a[38] = 1.0; Tcb_b[38] = 0.0;
+    Tcf_a[39] = 1.0; Tcf_b[39] = 0.0; Tcb_a[39] = 1.0; Tcb_b[39] = 0.0;
+    Tcf_a[40] = 1.0; Tcf_b[40] = 0.0; Tcb_a[40] = 1.0; Tcb_b[40] = 0.0;
+    Tcf_a[41] = 1.0; Tcf_b[41] = 0.0; Tcb_a[41] = 1.0; Tcb_b[41] = 0.0;
+    Tcf_a[42] = 1.0; Tcf_b[42] = 0.0; Tcb_a[42] = 1.0; Tcb_b[42] = 0.0;
+    Tcf_a[43] = 1.0; Tcf_b[43] = 0.0; Tcb_a[43] = 1.0; Tcb_b[43] = 0.0;
+    Tcf_a[44] = 1.0; Tcf_b[44] = 0.0; Tcb_a[44] = 1.0; Tcb_b[44] = 0.0;
+    Tcf_a[45] = 1.0; Tcf_b[45] = 0.0; Tcb_a[45] = 1.0; Tcb_b[45] = 0.0;
+    Tcf_a[46] = 1.0; Tcf_b[46] = 0.0; Tcb_a[46] = 1.0; Tcb_b[46] = 0.0;
+
+    // Reaction 47: O+e- -> O++e-+e-  (electron impact ionization)
+    Tcf_a[47] = 0.0; Tcf_b[47] = 1.0; Tcb_a[47] = 0.0; Tcb_b[47] = 1.0;
+
+    // Reaction 48: N+e- -> N++e-+e-  (electron impact ionization)
+    Tcf_a[48] = 0.0; Tcf_b[48] = 1.0; Tcb_a[48] = 0.0; Tcb_b[48] = 1.0;
+    /*--- Collision integral data ---*/
+    // Index 1: collider
+    // Index 2: partner
+    // Index 3: A1, A2, A3
+
+    // Omega^(1,1) ----------------------
+    // e-(0)
+    Omega11(0,0,0) = -1.0000000E+00;  Omega11(0,0,1) = -1.0000000E+00;  Omega11(0,0,2) = -1.0000000E+00;  Omega11(0,0,3) = -1.0000000E+00;
+    Omega11(0,1,0) = -1.0525124E-02;  Omega11(0,1,1) =  1.3498950E-01;  Omega11(0,1,2) =  1.2524805E-01;  Omega11(0,1,3) =  1.5066506E-01;
+    Omega11(0,2,0) =  2.3527001E-02;  Omega11(0,2,1) = -6.9632323E-01;  Omega11(0,2,2) =  6.8035475E+00;  Omega11(0,2,3) =  1.8335509E-09;
+    Omega11(0,3,0) =  1.0414818E-01;  Omega11(0,3,1) = -2.8369126E+00;  Omega11(0,3,2) =  2.5323135E+01;  Omega11(0,3,3) =  7.7138358E-32;
+    Omega11(0,4,0) =  0.0000000E+00;  Omega11(0,4,1) =  1.6554247E-01;  Omega11(0,4,2) = -3.4986344E+00;  Omega11(0,4,3) =  5.9268038E+08;
+    Omega11(0,5,0) =  9.9865506E-03;  Omega11(0,5,1) = -2.7407431E-01;  Omega11(0,5,2) =  2.6561032E+00;  Omega11(0,5,3) =  4.3080676E-04;
+    Omega11(0,6,0) =  1.0000000E+00;  Omega11(0,6,1) =  1.0000000E+00;  Omega11(0,6,2) =  1.0000000E+00;  Omega11(0,6,3) =  1.0000000E+00;
+    Omega11(0,7,0) =  1.0000000E+00;  Omega11(0,7,1) =  1.0000000E+00;  Omega11(0,7,2) =  1.0000000E+00;  Omega11(0,7,3) =  1.0000000E+00;
+    Omega11(0,8,0) =  1.0000000E+00;  Omega11(0,8,1) =  1.0000000E+00;  Omega11(0,8,2) =  1.0000000E+00;  Omega11(0,8,3) =  1.0000000E+00;
+    Omega11(0,9,0) =  1.0000000E+00;  Omega11(0,9,1) =  1.0000000E+00;  Omega11(0,9,2) =  1.0000000E+00;  Omega11(0,9,3) =  1.0000000E+00;
+    Omega11(0,10,0) = 1.0000000E+00;  Omega11(0,10,1) = 1.0000000E+00;  Omega11(0,10,2) = 1.0000000E+00;  Omega11(0,10,3) = 1.0000000E+00;
+    // N2(1)
+    Omega11(1,0,0) = -1.0525124E-02;  Omega11(1,0,1) =  1.3498950E-01;  Omega11(1,0,2) =  1.2524805E-01;  Omega11(1,0,3) =  1.5066506E-01;
+    Omega11(1,1,0) = -6.0614558E-03;  Omega11(1,1,1) =  1.2689102E-01;  Omega11(1,1,2) = -1.0616948E+00;  Omega11(1,1,3) =  8.0955466E+02;
+    Omega11(1,2,0) = -3.7959091E-03;  Omega11(1,2,1) =  9.5708295E-02;  Omega11(1,2,2) = -1.0070611E+00;  Omega11(1,2,3) =  8.9392313E+02;
+    Omega11(1,3,0) = -1.9295666E-03;  Omega11(1,3,1) =  2.7995735E-02;  Omega11(1,3,2) = -3.1588514E-01;  Omega11(1,3,3) =  1.2880734E+02;
+    Omega11(1,4,0) = -1.0796249E-02;  Omega11(1,4,1) =  2.2656509E-01;  Omega11(1,4,2) = -1.7910602E+00;  Omega11(1,4,3) =  4.0455218E+03;
+    Omega11(1,5,0) = -2.7244269E-03;  Omega11(1,5,1) =  6.9587171E-02;  Omega11(1,5,2) = -7.9538667E-01;  Omega11(1,5,3) =  4.0673730E+02;
+    Omega11(1,6,0) =  0.0000000E+00;  Omega11(1,6,1) =  9.1205839E-02;  Omega11(1,6,2) = -1.8728231E+00;  Omega11(1,6,3) =  2.4432020E+05;
+    Omega11(1,7,0) = -2.9123716E-03;  Omega11(1,7,1) =  9.6850678E-02;  Omega11(1,7,2) = -1.1416540E+00;  Omega11(1,7,3) =  7.9252169E+03;
+    Omega11(1,8,0) =  1.2405624E-02;  Omega11(1,8,1) = -2.0452111E-01;  Omega11(1,8,2) =  3.5478475E-01;  Omega11(1,8,3) =  1.0778357E+03;
+    Omega11(1,9,0) = -1.0687805E-02;  Omega11(1,9,1) =  2.4479697E-01;  Omega11(1,9,2) = -2.3192863E+00;  Omega11(1,9,3) =  1.0689229E+05;
+    Omega11(1,10,0) = 1.0352091E-02;  Omega11(1,10,1) = -1.5733723E-01;  Omega11(1,10,2) =  2.9326150E-02;  Omega11(1,10,3) =  2.1003616E+03;
+    // O2(2)
+    Omega11(2,0,0) =  2.3527001E-02;  Omega11(2,0,1) = -6.9632323E-01;  Omega11(2,0,2) =  6.8035475E+00;  Omega11(2,0,3) =  1.8335509E-09;
+    Omega11(2,1,0) = -3.7959091E-03;  Omega11(2,1,1) =  9.5708295E-02;  Omega11(2,1,2) = -1.0070611E+00;  Omega11(2,1,3) =  8.9392313E+02;
+    Omega11(2,2,0) = -8.0682650E-04;  Omega11(2,2,1) =  1.6602480E-02;  Omega11(2,2,2) = -3.1472774E-01;  Omega11(2,2,3) =  1.4116458E+02;
+    Omega11(2,3,0) = -6.4433840E-04;  Omega11(2,3,1) =  8.5378580E-03;  Omega11(2,3,2) = -2.3225102E-01;  Omega11(2,3,3) =  1.1371608E+02;
+    Omega11(2,4,0) = -1.1453028E-03;  Omega11(2,4,1) =  1.2654140E-02;  Omega11(2,4,2) = -2.2435218E-01;  Omega11(2,4,3) =  7.7201588E+01;
+    Omega11(2,5,0) = -4.8405803E-03;  Omega11(2,5,1) =  1.0297688E-01;  Omega11(2,5,2) = -9.6876576E-01;  Omega11(2,5,3) =  6.1629812E+02;
+    Omega11(2,6,0) = -3.7822765E-03;  Omega11(2,6,1) =  1.7967016E-01;  Omega11(2,6,2) = -2.5409098E+00;  Omega11(2,6,3) =  1.1840435E+06;
+    Omega11(2,7,0) = -4.0893007E-03;  Omega11(2,7,1) =  1.7795266E-01;  Omega11(2,7,2) = -2.3800543E+00;  Omega11(2,7,3) =  5.1949298E+05;
+    Omega11(2,8,0) = -8.9520932E-03;  Omega11(2,8,1) =  2.2749642E-01;  Omega11(2,8,2) = -2.0758341E+00;  Omega11(2,8,3) =  6.7674419E+04;
+    Omega11(2,9,0) =  0.0000000E+00;  Omega11(2,9,1) =  8.7745537E-02;  Omega11(2,9,2) = -1.8347158E+00;  Omega11(2,9,3) =  1.9830120E+05;
+    Omega11(2,10,0) = 0.0000000E+00;  Omega11(2,10,1) =  9.3559978E-02;  Omega11(2,10,2) = -1.9842999E+00;  Omega11(2,10,3) =  4.3097490E+05;
+    // NO(3)
+    Omega11(3,0,0) =  1.0414818E-01;  Omega11(3,0,1) = -2.8369126E+00;  Omega11(3,0,2) =  2.5323135E+01;  Omega11(3,0,3) =  7.7138358E-32;
+    Omega11(3,1,0) = -1.9295666E-03;  Omega11(3,1,1) =  2.7995735E-02;  Omega11(3,1,2) = -3.1588514E-01;  Omega11(3,1,3) =  1.2880734E+02;
+    Omega11(3,2,0) = -6.4433840E-04;  Omega11(3,2,1) =  8.5378580E-03;  Omega11(3,2,2) = -2.3225102E-01;  Omega11(3,2,3) =  1.1371608E+02;
+    Omega11(3,3,0) =  0.0000000E+00;  Omega11(3,3,1) = -1.1056066E-02;  Omega11(3,3,2) = -5.9216250E-02;  Omega11(3,3,3) =  7.2542367E+01;
+    Omega11(3,4,0) = -1.5770918E-03;  Omega11(3,4,1) =  1.9578381E-02;  Omega11(3,4,2) = -2.7873624E-01;  Omega11(3,4,3) =  9.9547944E+01;
+    Omega11(3,5,0) = -1.0885815E-03;  Omega11(3,5,1) =  1.1883688E-02;  Omega11(3,5,2) = -2.1844909E-01;  Omega11(3,5,3) =  7.5512560E+01;
+    Omega11(3,6,0) = -8.1158474E-03;  Omega11(3,6,1) =  2.1474280E-01;  Omega11(3,6,2) = -2.0148450E+00;  Omega11(3,6,3) =  6.2986385E+04;
+    Omega11(3,7,0) = -9.2292933E-03;  Omega11(3,7,1) =  2.9813226E-01;  Omega11(3,7,2) = -3.2899475E+00;  Omega11(3,7,3) =  4.9147046E+06;
+    Omega11(3,8,0) =  1.3731123E-02;  Omega11(3,8,1) = -2.3920299E-01;  Omega11(3,8,2) =  6.7093226E-01;  Omega11(3,8,3) =  4.0068731E+02;
+    Omega11(3,9,0) =  0.0000000E+00;  Omega11(3,9,1) =  8.6531037E-02;  Omega11(3,9,2) = -1.8117931E+00;  Omega11(3,9,3) =  1.8621272E+05;
+    Omega11(3,10,0) = 8.3856973E-03;  Omega11(3,10,1) = -1.0972656E-01;  Omega11(3,10,2) = -3.3896281E-01;  Omega11(3,10,3) =  5.2004690E+03;
+    // N(4)
+    Omega11(4,0,0) =  0.0000000E+00;  Omega11(4,0,1) =  1.6554247E-01;  Omega11(4,0,2) = -3.4986344E+00;  Omega11(4,0,3) =  5.9268038E+08;
+    Omega11(4,1,0) = -1.0796249E-02;  Omega11(4,1,1) =  2.2656509E-01;  Omega11(4,1,2) = -1.7910602E+00;  Omega11(4,1,3) =  4.0455218E+03;
+    Omega11(4,2,0) = -1.1453028E-03;  Omega11(4,2,1) =  1.2654140E-02;  Omega11(4,2,2) = -2.2435218E-01;  Omega11(4,2,3) =  7.7201588E+01;
+    Omega11(4,3,0) = -1.5770918E-03;  Omega11(4,3,1) =  1.9578381E-02;  Omega11(4,3,2) = -2.7873624E-01;  Omega11(4,3,3) =  9.9547944E+01;
+    Omega11(4,4,0) = -9.6083779E-03;  Omega11(4,4,1) =  2.0938971E-01;  Omega11(4,4,2) = -1.7386904E+00;  Omega11(4,4,3) =  3.3587983E+03;
+    Omega11(4,5,0) = -7.8147689E-03;  Omega11(4,5,1) =  1.6792705E-01;  Omega11(4,5,2) = -1.4308628E+00;  Omega11(4,5,3) =  1.6628859E+03;
+    Omega11(4,6,0) = -1.9605234E-02;  Omega11(4,6,1) =  5.5570872E-01;  Omega11(4,6,2) = -5.4285702E+00;  Omega11(4,6,3) =  1.3574446E+09;
+    Omega11(4,7,0) = -1.4501284E-02;  Omega11(4,7,1) =  4.1085338E-01;  Omega11(4,7,2) = -4.0115094E+00;  Omega11(4,7,3) =  1.5735451E+07;
+    Omega11(4,8,0) =  0.0000000E+00;  Omega11(4,8,1) =  8.3065769E-02;  Omega11(4,8,2) = -1.7501512E+00;  Omega11(4,8,3) =  1.0846799E+05;
+    Omega11(4,9,0) = -4.0078980E-03;  Omega11(4,9,1) =  1.0327487E-01;  Omega11(4,9,2) = -9.9473323E-01;  Omega11(4,9,3) =  2.8178290E+03;
+    Omega11(4,10,0) = -2.4288224E-02;  Omega11(4,10,1) =  5.6305072E-01;  Omega11(4,10,2) = -4.6849679E+00;  Omega11(4,10,3) =  2.7303024E+07;
+    // O(5)
+    Omega11(5,0,0) =  9.9865506E-03;  Omega11(5,0,1) = -2.7407431E-01;  Omega11(5,0,2) =  2.6561032E+00;  Omega11(5,0,3) =  4.3080676E-04;
+    Omega11(5,1,0) = -2.7244269E-03;  Omega11(5,1,1) =  6.9587171E-02;  Omega11(5,1,2) = -7.9538667E-01;  Omega11(5,1,3) =  4.0673730E+02;
+    Omega11(5,2,0) = -4.8405803E-03;  Omega11(5,2,1) =  1.0297688E-01;  Omega11(5,2,2) = -9.6876576E-01;  Omega11(5,2,3) =  6.1629812E+02;
+    Omega11(5,3,0) = -1.0885815E-03;  Omega11(5,3,1) =  1.1883688E-02;  Omega11(5,3,2) = -2.1844909E-01;  Omega11(5,3,3) =  7.5512560E+01;
+    Omega11(5,4,0) = -7.8147689E-03;  Omega11(5,4,1) =  1.6792705E-01;  Omega11(5,4,2) = -1.4308628E+00;  Omega11(5,4,3) =  1.6628859E+03;
+    Omega11(5,5,0) = -6.4040535E-03;  Omega11(5,5,1) =  1.4629949E-01;  Omega11(5,5,2) = -1.3892121E+00;  Omega11(5,5,3) =  2.0903441E+03;
+    Omega11(5,6,0) = -1.6409054E-02;  Omega11(5,6,1) =  4.6352852E-01;  Omega11(5,6,2) = -4.5479735E+00;  Omega11(5,6,3) =  7.4250671E+07;
+    Omega11(5,7,0) = -1.6923472E-02;  Omega11(5,7,1) =  4.6067692E-01;  Omega11(5,7,2) = -4.3294966E+00;  Omega11(5,7,3) =  2.5538927E+07;
+    Omega11(5,8,0) = -2.9417970E-03;  Omega11(5,8,1) =  1.5129273E-01;  Omega11(5,8,2) = -2.2497964E+00;  Omega11(5,8,3) =  2.9325215E+05;
+    Omega11(5,9,0) = -1.5767256E-02;  Omega11(5,9,1) =  3.5405830E-01;  Omega11(5,9,2) = -3.0686783E+00;  Omega11(5,9,3) =  4.6336779E+05;
+    Omega11(5,10,0) = -3.8347988E-03;  Omega11(5,10,1) =  9.9930498E-02;  Omega11(5,10,2) = -9.6288891E-01;  Omega11(5,10,3) =  1.9669897E+03;
+    // NO+(6)
+    Omega11(6,0,0) =  1.0000000E+00;  Omega11(6,0,1) =  1.0000000E+00;  Omega11(6,0,2) =  1.0000000E+00;  Omega11(6,0,3) =  1.0000000E+00;
+    Omega11(6,1,0) =  0.0000000E+00;  Omega11(6,1,1) =  9.1205839E-02;  Omega11(6,1,2) = -1.8728231E+00;  Omega11(6,1,3) =  2.4432020E+05;
+    Omega11(6,2,0) = -3.7822765E-03;  Omega11(6,2,1) =  1.7967016E-01;  Omega11(6,2,2) = -2.5409098E+00;  Omega11(6,2,3) =  1.1840435E+06;
+    Omega11(6,3,0) = -8.1158474E-03;  Omega11(6,3,1) =  2.1474280E-01;  Omega11(6,3,2) = -2.0148450E+00;  Omega11(6,3,3) =  6.2986385E+04;
+    Omega11(6,4,0) = -1.9605234E-02;  Omega11(6,4,1) =  5.5570872E-01;  Omega11(6,4,2) = -5.4285702E+00;  Omega11(6,4,3) =  1.3574446E+09;
+    Omega11(6,5,0) = -1.6409054E-02;  Omega11(6,5,1) =  4.6352852E-01;  Omega11(6,5,2) = -4.5479735E+00;  Omega11(6,5,3) =  7.4250671E+07;
+    Omega11(6,6,0) = -1.0000000E+00;  Omega11(6,6,1) = -1.0000000E+00;  Omega11(6,6,2) = -1.0000000E+00;  Omega11(6,6,3) = -1.0000000E+00;
+    Omega11(6,7,0) = -1.0000000E+00;  Omega11(6,7,1) = -1.0000000E+00;  Omega11(6,7,2) = -1.0000000E+00;  Omega11(6,7,3) = -1.0000000E+00;
+    Omega11(6,8,0) = -1.0000000E+00;  Omega11(6,8,1) = -1.0000000E+00;  Omega11(6,8,2) = -1.0000000E+00;  Omega11(6,8,3) = -1.0000000E+00;
+    Omega11(6,9,0) = -1.0000000E+00;  Omega11(6,9,1) = -1.0000000E+00;  Omega11(6,9,2) = -1.0000000E+00;  Omega11(6,9,3) = -1.0000000E+00;
+    Omega11(6,10,0) = -1.0000000E+00; Omega11(6,10,1) = -1.0000000E+00; Omega11(6,10,2) = -1.0000000E+00; Omega11(6,10,3) = -1.0000000E+00;
+    // N2+(7)
+    Omega11(7,0,0) =  1.0000000E+00;  Omega11(7,0,1) =  1.0000000E+00;  Omega11(7,0,2) =  1.0000000E+00;  Omega11(7,0,3) =  1.0000000E+00;
+    Omega11(7,1,0) = -2.9123716E-03;  Omega11(7,1,1) =  9.6850678E-02;  Omega11(7,1,2) = -1.1416540E+00;  Omega11(7,1,3) =  7.9252169E+03;
+    Omega11(7,2,0) = -4.0893007E-03;  Omega11(7,2,1) =  1.7795266E-01;  Omega11(7,2,2) = -2.3800543E+00;  Omega11(7,2,3) =  5.1949298E+05;
+    Omega11(7,3,0) = -9.2292933E-03;  Omega11(7,3,1) =  2.9813226E-01;  Omega11(7,3,2) = -3.2899475E+00;  Omega11(7,3,3) =  4.9147046E+06;
+    Omega11(7,4,0) = -1.4501284E-02;  Omega11(7,4,1) =  4.1085338E-01;  Omega11(7,4,2) = -4.0115094E+00;  Omega11(7,4,3) =  1.5735451E+07;
+    Omega11(7,5,0) = -1.6923472E-02;  Omega11(7,5,1) =  4.6067692E-01;  Omega11(7,5,2) = -4.3294966E+00;  Omega11(7,5,3) =  2.5538927E+07;
+    Omega11(7,6,0) = -1.0000000E+00;  Omega11(7,6,1) = -1.0000000E+00;  Omega11(7,6,2) = -1.0000000E+00;  Omega11(7,6,3) = -1.0000000E+00;
+    Omega11(7,7,0) = -1.0000000E+00;  Omega11(7,7,1) = -1.0000000E+00;  Omega11(7,7,2) = -1.0000000E+00;  Omega11(7,7,3) = -1.0000000E+00;
+    Omega11(7,8,0) = -1.0000000E+00;  Omega11(7,8,1) = -1.0000000E+00;  Omega11(7,8,2) = -1.0000000E+00;  Omega11(7,8,3) = -1.0000000E+00;
+    Omega11(7,9,0) = -1.0000000E+00;  Omega11(7,9,1) = -1.0000000E+00;  Omega11(7,9,2) = -1.0000000E+00;  Omega11(7,9,3) = -1.0000000E+00;
+    Omega11(7,10,0) = -1.0000000E+00; Omega11(7,10,1) = -1.0000000E+00; Omega11(7,10,2) = -1.0000000E+00; Omega11(7,10,3) = -1.0000000E+00;
+    // O2+(8)
+    Omega11(8,0,0) =  1.0000000E+00;  Omega11(8,0,1) =  1.0000000E+00;  Omega11(8,0,2) =  1.0000000E+00;  Omega11(8,0,3) =  1.0000000E+00;
+    Omega11(8,1,0) =  1.2405624E-02;  Omega11(8,1,1) = -2.0452111E-01;  Omega11(8,1,2) =  3.5478475E-01;  Omega11(8,1,3) =  1.0778357E+03;
+    Omega11(8,2,0) = -8.9520932E-03;  Omega11(8,2,1) =  2.2749642E-01;  Omega11(8,2,2) = -2.0758341E+00;  Omega11(8,2,3) =  6.7674419E+04;
+    Omega11(8,3,0) =  1.3731123E-02;  Omega11(8,3,1) = -2.3920299E-01;  Omega11(8,3,2) =  6.7093226E-01;  Omega11(8,3,3) =  4.0068731E+02;
+    Omega11(8,4,0) =  0.0000000E+00;  Omega11(8,4,1) =  8.3065769E-02;  Omega11(8,4,2) = -1.7501512E+00;  Omega11(8,4,3) =  1.0846799E+05;
+    Omega11(8,5,0) = -2.9417970E-03;  Omega11(8,5,1) =  1.5129273E-01;  Omega11(8,5,2) = -2.2497964E+00;  Omega11(8,5,3) =  2.9325215E+05;
+    Omega11(8,6,0) = -1.0000000E+00;  Omega11(8,6,1) = -1.0000000E+00;  Omega11(8,6,2) = -1.0000000E+00;  Omega11(8,6,3) = -1.0000000E+00;
+    Omega11(8,7,0) = -1.0000000E+00;  Omega11(8,7,1) = -1.0000000E+00;  Omega11(8,7,2) = -1.0000000E+00;  Omega11(8,7,3) = -1.0000000E+00;
+    Omega11(8,8,0) = -1.0000000E+00;  Omega11(8,8,1) = -1.0000000E+00;  Omega11(8,8,2) = -1.0000000E+00;  Omega11(8,8,3) = -1.0000000E+00;
+    Omega11(8,9,0) = -1.0000000E+00;  Omega11(8,9,1) = -1.0000000E+00;  Omega11(8,9,2) = -1.0000000E+00;  Omega11(8,9,3) = -1.0000000E+00;
+    Omega11(8,10,0) = -1.0000000E+00; Omega11(8,10,1) = -1.0000000E+00; Omega11(8,10,2) = -1.0000000E+00; Omega11(8,10,3) = -1.0000000E+00;
+    // N+(9)
+    Omega11(9,0,0) =  1.0000000E+00;  Omega11(9,0,1) =  1.0000000E+00;  Omega11(9,0,2) =  1.0000000E+00;  Omega11(9,0,3) =  1.0000000E+00;
+    Omega11(9,1,0) = -1.0687805E-02;  Omega11(9,1,1) =  2.4479697E-01;  Omega11(9,1,2) = -2.3192863E+00;  Omega11(9,1,3) =  1.0689229E+05;
+    Omega11(9,2,0) =  0.0000000E+00;  Omega11(9,2,1) =  8.7745537E-02;  Omega11(9,2,2) = -1.8347158E+00;  Omega11(9,2,3) =  1.9830120E+05;
+    Omega11(9,3,0) =  0.0000000E+00;  Omega11(9,3,1) =  8.6531037E-02;  Omega11(9,3,2) = -1.8117931E+00;  Omega11(9,3,3) =  1.8621272E+05;
+    Omega11(9,4,0) = -4.0078980E-03;  Omega11(9,4,1) =  1.0327487E-01;  Omega11(9,4,2) = -9.9473323E-01;  Omega11(9,4,3) =  2.8178290E+03;
+    Omega11(9,5,0) = -1.5767256E-02;  Omega11(9,5,1) =  3.5405830E-01;  Omega11(9,5,2) = -3.0686783E+00;  Omega11(9,5,3) =  4.6336779E+05;
+    Omega11(9,6,0) = -1.0000000E+00;  Omega11(9,6,1) = -1.0000000E+00;  Omega11(9,6,2) = -1.0000000E+00;  Omega11(9,6,3) = -1.0000000E+00;
+    Omega11(9,7,0) = -1.0000000E+00;  Omega11(9,7,1) = -1.0000000E+00;  Omega11(9,7,2) = -1.0000000E+00;  Omega11(9,7,3) = -1.0000000E+00;
+    Omega11(9,8,0) = -1.0000000E+00;  Omega11(9,8,1) = -1.0000000E+00;  Omega11(9,8,2) = -1.0000000E+00;  Omega11(9,8,3) = -1.0000000E+00;
+    Omega11(9,9,0) = -1.0000000E+00;  Omega11(9,9,1) = -1.0000000E+00;  Omega11(9,9,2) = -1.0000000E+00;  Omega11(9,9,3) = -1.0000000E+00;
+    Omega11(9,10,0) = -1.0000000E+00; Omega11(9,10,1) = -1.0000000E+00; Omega11(9,10,2) = -1.0000000E+00; Omega11(9,10,3) = -1.0000000E+00;
+    // O+(10)
+    Omega11(10,0,0) =  1.0000000E+00;  Omega11(10,0,1) =  1.0000000E+00;  Omega11(10,0,2) =  1.0000000E+00;  Omega11(10,0,3) =  1.0000000E+00;
+    Omega11(10,1,0) =  1.0352091E-02;  Omega11(10,1,1) = -1.5733723E-01;  Omega11(10,1,2) =  2.9326150E-02;  Omega11(10,1,3) =  2.1003616E+03;
+    Omega11(10,2,0) =  0.0000000E+00;  Omega11(10,2,1) =  9.3559978E-02;  Omega11(10,2,2) = -1.9842999E+00;  Omega11(10,2,3) =  4.3097490E+05;
+    Omega11(10,3,0) =  8.3856973E-03;  Omega11(10,3,1) = -1.0972656E-01;  Omega11(10,3,2) = -3.3896281E-01;  Omega11(10,3,3) =  5.2004690E+03;
+    Omega11(10,4,0) = -2.4288224E-02;  Omega11(10,4,1) =  5.6305072E-01;  Omega11(10,4,2) = -4.6849679E+00;  Omega11(10,4,3) =  2.7303024E+07;
+    Omega11(10,5,0) = -3.8347988E-03;  Omega11(10,5,1) =  9.9930498E-02;  Omega11(10,5,2) = -9.6288891E-01;  Omega11(10,5,3) =  1.9669897E+03;
+    Omega11(10,6,0) = -1.0000000E+00;  Omega11(10,6,1) = -1.0000000E+00;  Omega11(10,6,2) = -1.0000000E+00;  Omega11(10,6,3) = -1.0000000E+00;
+    Omega11(10,7,0) = -1.0000000E+00;  Omega11(10,7,1) = -1.0000000E+00;  Omega11(10,7,2) = -1.0000000E+00;  Omega11(10,7,3) = -1.0000000E+00;
+    Omega11(10,8,0) = -1.0000000E+00;  Omega11(10,8,1) = -1.0000000E+00;  Omega11(10,8,2) = -1.0000000E+00;  Omega11(10,8,3) = -1.0000000E+00;
+    Omega11(10,9,0) = -1.0000000E+00;  Omega11(10,9,1) = -1.0000000E+00;  Omega11(10,9,2) = -1.0000000E+00;  Omega11(10,9,3) = -1.0000000E+00;
+    Omega11(10,10,0) = -1.0000000E+00; Omega11(10,10,1) = -1.0000000E+00; Omega11(10,10,2) = -1.0000000E+00; Omega11(10,10,3) = -1.0000000E+00;
+
+
+    // Omega^(2,2) ----------------------
+    // e-(0)
+    Omega22(0,0,0) = -1.0000000E+00;  Omega22(0,0,1) = -1.0000000E+00;  Omega22(0,0,2) = -1.0000000E+00;  Omega22(0,0,3) = -1.0000000E+00;
+    Omega22(0,1,0) = -4.2254948E-03;  Omega22(0,1,1) = -5.2965163E-02;  Omega22(0,1,2) =  1.9157708E+00;  Omega22(0,1,3) =  6.3263309E-04;
+    Omega22(0,2,0) =  9.6744867E-03;  Omega22(0,2,1) = -3.3759583E-01;  Omega22(0,2,2) =  3.7952121E+00;  Omega22(0,2,3) =  6.8468036E-06;
+    Omega22(0,3,0) =  0.0000000E+00;  Omega22(0,3,1) =  5.4444485E-02;  Omega22(0,3,2) = -1.2854128E+00;  Omega22(0,3,3) =  1.3857556E+04;
+    Omega22(0,4,0) = -1.0903638E-01;  Omega22(0,4,1) =  2.8678381E+00;  Omega22(0,4,2) = -2.5297550E+01;  Omega22(0,4,3) =  3.4838798E+33;
+    Omega22(0,5,0) = -1.7924100E-02;  Omega22(0,5,1) =  4.0402656E-01;  Omega22(0,5,2) = -2.6712374E+00;  Omega22(0,5,3) =  4.1447669E+02;
+    Omega22(0,6,0) =  1.0000000E+00;  Omega22(0,6,1) =  1.0000000E+00;  Omega22(0,6,2) =  1.0000000E+00;  Omega22(0,6,3) =  1.0000000E+00;
+    Omega22(0,7,0) =  1.0000000E+00;  Omega22(0,7,1) =  1.0000000E+00;  Omega22(0,7,2) =  1.0000000E+00;  Omega22(0,7,3) =  1.0000000E+00;
+    Omega22(0,8,0) =  1.0000000E+00;  Omega22(0,8,1) =  1.0000000E+00;  Omega22(0,8,2) =  1.0000000E+00;  Omega22(0,8,3) =  1.0000000E+00;
+    Omega22(0,9,0) =  1.0000000E+00;  Omega22(0,9,1) =  1.0000000E+00;  Omega22(0,9,2) =  1.0000000E+00;  Omega22(0,9,3) =  1.0000000E+00;
+    Omega22(0,10,0) = 1.0000000E+00;  Omega22(0,10,1) = 1.0000000E+00;  Omega22(0,10,2) = 1.0000000E+00;  Omega22(0,10,3) = 1.0000000E+00;
+    // N2(1)
+    Omega22(1,0,0) = -4.2254948E-03;  Omega22(1,0,1) = -5.2965163E-02;  Omega22(1,0,2) =  1.9157708E+00;  Omega22(1,0,3) =  6.3263309E-04;
+    Omega22(1,1,0) = -7.6303990E-03;  Omega22(1,1,1) =  1.6878089E-01;  Omega22(1,1,2) = -1.4004234E+00;  Omega22(1,1,3) =  2.1427708E+03;
+    Omega22(1,2,0) = -8.0457321E-03;  Omega22(1,2,1) =  1.9228905E-01;  Omega22(1,2,2) = -1.7102854E+00;  Omega22(1,2,3) =  5.2213857E+03;
+    Omega22(1,3,0) = -6.8237776E-03;  Omega22(1,3,1) =  1.4360616E-01;  Omega22(1,3,2) = -1.1922240E+00;  Omega22(1,3,3) =  1.2433086E+03;
+    Omega22(1,4,0) = -8.3493693E-03;  Omega22(1,4,1) =  1.7808911E-01;  Omega22(1,4,2) = -1.4466155E+00;  Omega22(1,4,3) =  1.9324210E+03;
+    Omega22(1,5,0) = -8.3110691E-03;  Omega22(1,5,1) =  1.9617877E-01;  Omega22(1,5,2) = -1.7205427E+00;  Omega22(1,5,3) =  4.0812829E+03;
+    Omega22(1,6,0) =  0.0000000E+00;  Omega22(1,6,1) =  8.5112236E-02;  Omega22(1,6,2) = -1.7460044E+00;  Omega22(1,6,3) =  1.4498969E+05;
+    Omega22(1,7,0) = -1.6447237E-02;  Omega22(1,7,1) =  4.7759522E-01;  Omega22(1,7,2) = -4.7641986E+00;  Omega22(1,7,3) =  2.9127542E+08;
+    Omega22(1,8,0) =  2.2455421E-02;  Omega22(1,8,1) = -4.5106797E-01;  Omega22(1,8,2) =  2.3763420E+00;  Omega22(1,8,3) =  4.7754696E+00;
+    Omega22(1,9,0) = -7.0776069E-03;  Omega22(1,9,1) =  1.7917938E-01;  Omega22(1,9,2) = -1.9102410E+00;  Omega22(1,9,3) =  4.6736263E+04;
+    Omega22(1,10,0) = 1.8733000E-02;  Omega22(1,10,1)= -3.6163781E-01;  Omega22(1,10,2) = 1.6947101E+00;  Omega22(1,10,3) =  2.5244859E+01;
+    // O2(2)
+    Omega22(2,0,0) =  9.6744867E-03;  Omega22(2,0,1) = -3.3759583E-01;  Omega22(2,0,2) =  3.7952121E+00;  Omega22(2,0,3) =  6.8468036E-06;
+    Omega22(2,1,0) = -8.0457321E-03;  Omega22(2,1,1) =  1.9228905E-01;  Omega22(2,1,2) = -1.7102854E+00;  Omega22(2,1,3) =  5.2213857E+03;
+    Omega22(2,2,0) = -6.2931612E-03;  Omega22(2,2,1) =  1.4624645E-01;  Omega22(2,2,2) = -1.3006927E+00;  Omega22(2,2,3) =  1.8066892E+03;
+    Omega22(2,3,0) = -6.8508672E-03;  Omega22(2,3,1) =  1.5524564E-01;  Omega22(2,3,2) = -1.3479583E+00;  Omega22(2,3,3) =  2.0037890E+03;
+    Omega22(2,4,0) = -1.0608832E-03;  Omega22(2,4,1) =  1.1782595E-02;  Omega22(2,4,2) = -2.1246301E-01;  Omega22(2,4,3) =  8.4561598E+01;
+    Omega22(2,5,0) = -3.7969686E-03;  Omega22(2,5,1) =  7.6789981E-02;  Omega22(2,5,2) = -7.3056809E-01;  Omega22(2,5,3) =  3.3958171E+02;
+    Omega22(2,6,0) =  0.0000000E+00;  Omega22(2,6,1) =  8.4737359E-02;  Omega22(2,6,2) = -1.7290488E+00;  Omega22(2,6,3) =  1.2485194E+05;
+    Omega22(2,7,0) = -4.9176811E-03;  Omega22(2,7,1) =  1.9694738E-01;  Omega22(2,7,2) = -2.5025540E+00;  Omega22(2,7,3) =  6.8213629E+05;
+    Omega22(2,8,0) =  2.8664463E-02;  Omega22(2,8,1) = -5.8087240E-01;  Omega22(2,8,2) =  3.2564558E+00;  Omega22(2,8,3) =  6.6890428E-01;
+    Omega22(2,9,0) =  9.8019578E-03;  Omega22(2,9,1) = -1.4699425E-01;  Omega22(2,9,2) =  3.9382460E-02;  Omega22(2,9,3) =  1.5112165E+03;
+    Omega22(2,10,0) = 1.4207970E-02;  Omega22(2,10,1) = -2.4736726E-01;  Omega22(2,10,2) =  7.4561859E-01;  Omega22(2,10,3) =  3.2519188E+02;
+    // NO(3)
+    Omega22(3,0,0) =  0.0000000E+00;  Omega22(3,0,1) =  5.4444485E-02;  Omega22(3,0,2) = -1.2854128E+00;  Omega22(3,0,3) =  1.3857556E+04;
+    Omega22(3,1,0) = -6.8237776E-03;  Omega22(3,1,1) =  1.4360616E-01;  Omega22(3,1,2) = -1.1922240E+00;  Omega22(3,1,3) =  1.2433086E+03;
+    Omega22(3,2,0) = -6.8508672E-03;  Omega22(3,2,1) =  1.5524564E-01;  Omega22(3,2,2) = -1.3479583E+00;  Omega22(3,2,3) =  2.0037890E+03;
+    Omega22(3,3,0) = -7.4942466E-03;  Omega22(3,3,1) =  1.6626193E-01;  Omega22(3,3,2) = -1.4107027E+00;  Omega22(3,3,3) =  2.3097604E+03;
+    Omega22(3,4,0) = -1.4719259E-03;  Omega22(3,4,1) =  1.8446968E-02;  Omega22(3,4,2) = -2.6460411E-01;  Omega22(3,4,3) =  1.0911124E+02;
+    Omega22(3,5,0) = -1.0066279E-03;  Omega22(3,5,1) =  1.1029264E-02;  Omega22(3,5,2) = -2.0671266E-01;  Omega22(3,5,3) =  8.2644384E+01;
+    Omega22(3,6,0) =  1.1055777E-02;  Omega22(3,6,1) = -1.6621846E-01;  Omega22(3,6,2) =  1.4372166E-01;  Omega22(3,6,3) =  1.3182061E+03;
+    Omega22(3,7,0) = -4.0133981E-03;  Omega22(3,7,1) =  1.7290664E-01;  Omega22(3,7,2) = -2.2855449E+00;  Omega22(3,7,3) =  3.6429320E+05;
+    Omega22(3,8,0) =  2.2679271E-02;  Omega22(3,8,1) = -4.5710920E-01;  Omega22(3,8,2) =  2.4427275E+00;  Omega22(3,8,3) =  3.6733514E+00;
+    Omega22(3,9,0) =  1.1716366E-02;  Omega22(3,9,1) = -1.9289789E-01;  Omega22(3,9,2) =  4.0269474E-01;  Omega22(3,9,3) =  6.0891590E+02;
+    Omega22(3,10,0) = 1.8015337E-02;  Omega22(3,10,1) = -3.4415293E-01;  Omega22(3,10,2) = 1.5658151E+00 ;  Omega22(3,10,3) =  3.3303758E+01;
+    // N(4)
+    Omega22(4,0,0) = -1.0903638E-01;  Omega22(4,0,1) =  2.8678381E+00;  Omega22(4,0,2) = -2.5297550E+01;  Omega22(4,0,3) =  3.4838798E+33;
+    Omega22(4,1,0) = -8.3493693E-03;  Omega22(4,1,1) =  1.7808911E-01;  Omega22(4,1,2) = -1.4466155E+00;  Omega22(4,1,3) =  1.9324210E+03;
+    Omega22(4,2,0) = -1.0608832E-03;  Omega22(4,2,1) =  1.1782595E-02;  Omega22(4,2,2) = -2.1246301E-01;  Omega22(4,2,3) =  8.4561598E+01;
+    Omega22(4,3,0) = -1.4719259E-03;  Omega22(4,3,1) =  1.8446968E-02;  Omega22(4,3,2) = -2.6460411E-01;  Omega22(4,3,3) =  1.0911124E+02;
+    Omega22(4,4,0) = -7.7439615E-03;  Omega22(4,4,1) =  1.7129007E-01;  Omega22(4,4,2) = -1.4809088E+00;  Omega22(4,4,3) =  2.1284951E+03;
+    Omega22(4,5,0) = -5.0478143E-03;  Omega22(4,5,1) =  1.0236186E-01;  Omega22(4,5,2) = -9.0058935E-01;  Omega22(4,5,3) =  4.4472565E+02;
+    Omega22(4,6,0) = -2.1009546E-02;  Omega22(4,6,1) =  5.8910426E-01;  Omega22(4,6,2) = -5.6681361E+00;  Omega22(4,6,3) =  2.4486594E+09;
+    Omega22(4,7,0) = -1.2882395E-02;  Omega22(4,7,1) =  3.7306469E-01;  Omega22(4,7,2) = -3.7106760E+00;  Omega22(4,7,3) =  7.5444981E+06;
+    Omega22(4,8,0) =  1.1205000E-02;  Omega22(4,8,1) = -1.8182149E-01;  Omega22(4,8,2) =  3.2624972E-01;  Omega22(4,8,3) =  5.5186183E+02;
+    Omega22(4,9,0) = -1.4271306E-02;  Omega22(4,9,1) =  3.0401993E-01;  Omega22(4,9,2) = -2.4573879E+00;  Omega22(4,9,3) =  5.3694705E+04;
+    Omega22(4,10,0)= -2.1681211E-02;  Omega22(4,10,1) = 5.2300453E-01;  Omega22(4,10,2)= -4.5118623E+00;  Omega22(4,10,3) =  2.3467766E+07;
+    // O(5)
+    Omega22(5,0,0) = -1.7924100E-02;  Omega22(5,0,1) =  4.0402656E-01;  Omega22(5,0,2) = -2.6712374E+00;  Omega22(5,0,3) =  4.1447669E+02;
+    Omega22(5,1,0) = -8.3110691E-03;  Omega22(5,1,1) =  1.9617877E-01;  Omega22(5,1,2) = -1.7205427E+00;  Omega22(5,1,3) =  4.0812829E+03;
+    Omega22(5,2,0) = -3.7969686E-03;  Omega22(5,2,1) =  7.6789981E-02;  Omega22(5,2,2) = -7.3056809E-01;  Omega22(5,2,3) =  3.3958171E+02;
+    Omega22(5,3,0) = -1.0066279E-03;  Omega22(5,3,1) =  1.1029264E-02;  Omega22(5,3,2) = -2.0671266E-01;  Omega22(5,3,3) =  8.2644384E+01;
+    Omega22(5,4,0) = -5.0478143E-03;  Omega22(5,4,1) =  1.0236186E-01;  Omega22(5,4,2) = -9.0058935E-01;  Omega22(5,4,3) =  4.4472565E+02;
+    Omega22(5,5,0) = -4.2451096E-03;  Omega22(5,5,1) =  9.6820337E-02;  Omega22(5,5,2) = -9.9770795E-01;  Omega22(5,5,3) =  8.3320644E+02;
+    Omega22(5,6,0) = -1.5315132E-02;  Omega22(5,6,1) =  4.3541627E-01;  Omega22(5,6,2) = -4.2864279E+00;  Omega22(5,6,3) =  3.5125207E+07;
+    Omega22(5,7,0) = -1.7420606E-02;  Omega22(5,7,1) =  4.7126950E-01;  Omega22(5,7,2) = -4.3841087E+00;  Omega22(5,7,3) =  2.8275095E+07;
+    Omega22(5,8,0) =  0.0000000E+00;  Omega22(5,8,1) =  8.3446262E-02;  Omega22(5,8,2) = -1.7191179E+00;  Omega22(5,8,3) =  8.0539928E+04;
+    Omega22(5,9,0) = -1.7907392E-02;  Omega22(5,9,1) =  4.1207892E-01;  Omega22(5,9,2) = -3.5343610E+00;  Omega22(5,9,3) =  1.4987678E+06;
+    Omega22(5,10,0)= -1.6032919E-02;  Omega22(5,10,1) = 3.7114396E-01;  Omega22(5,10,2)= -3.2050078E+00;  Omega22(5,10,3) =  5.8099314E+05;
+    // NO+(6)
+    Omega22(6,0,0) =  1.0000000E+00;  Omega22(6,0,1) =  1.0000000E+00;  Omega22(6,0,2) =  1.0000000E+00;  Omega22(6,0,3) =  1.0000000E+00;
+    Omega22(6,1,0) =  0.0000000E+00;  Omega22(6,1,1) =  8.5112236E-02;  Omega22(6,1,2) = -1.7460044E+00;  Omega22(6,1,3) =  1.4498969E+05;
+    Omega22(6,2,0) =  0.0000000E+00;  Omega22(6,2,1) =  8.4737359E-02;  Omega22(6,2,2) = -1.7290488E+00;  Omega22(6,2,3) =  1.2485194E+05;
+    Omega22(6,3,0) =  1.1055777E-02;  Omega22(6,3,1) = -1.6621846E-01;  Omega22(6,3,2) =  1.4372166E-01;  Omega22(6,3,3) =  1.3182061E+03;
+    Omega22(6,4,0) = -2.1009546E-02;  Omega22(6,4,1) =  5.8910426E-01;  Omega22(6,4,2) = -5.6681361E+00;  Omega22(6,4,3) =  2.4486594E+09;
+    Omega22(6,5,0) = -1.5315132E-02;  Omega22(6,5,1) =  4.3541627E-01;  Omega22(6,5,2) = -4.2864279E+00;  Omega22(6,5,3) =  3.5125207E+07;
+    Omega22(6,6,0) = -1.0000000E+00;  Omega22(6,6,1) = -1.0000000E+00;  Omega22(6,6,2) = -1.0000000E+00;  Omega22(6,6,3) = -1.0000000E+00;
+    Omega22(6,7,0) = -1.0000000E+00;  Omega22(6,7,1) = -1.0000000E+00;  Omega22(6,7,2) = -1.0000000E+00;  Omega22(6,7,3) = -1.0000000E+00;
+    Omega22(6,8,0) = -1.0000000E+00;  Omega22(6,8,1) = -1.0000000E+00;  Omega22(6,8,2) = -1.0000000E+00;  Omega22(6,8,3) = -1.0000000E+00;
+    Omega22(6,9,0) = -1.0000000E+00;  Omega22(6,9,1) = -1.0000000E+00;  Omega22(6,9,2) = -1.0000000E+00;  Omega22(6,9,3) = -1.0000000E+00;
+    Omega22(6,10,0) = -1.0000000E+00; Omega22(6,10,1) = -1.0000000E+00; Omega22(6,10,2) = -1.0000000E+00; Omega22(6,10,3) = -1.0000000E+00;
+    // N2+(7)
+    Omega22(7,0,0) =  1.0000000E+00;  Omega22(7,0,1) =  1.0000000E+00;  Omega22(7,0,2) =  1.0000000E+00;  Omega22(7,0,3) =  1.0000000E+00;
+    Omega22(7,1,0) = -1.6447237E-02;  Omega22(7,1,1) =  4.7759522E-01;  Omega22(7,1,2) = -4.7641986E+00;  Omega22(7,1,3) =  2.9127542E+08;
+    Omega22(7,2,0) = -4.9176811E-03;  Omega22(7,2,1) =  1.9694738E-01;  Omega22(7,2,2) = -2.5025540E+00;  Omega22(7,2,3) =  6.8213629E+05;
+    Omega22(7,3,0) = -4.0133981E-03;  Omega22(7,3,1) =  1.7290664E-01;  Omega22(7,3,2) = -2.2855449E+00;  Omega22(7,3,3) =  3.6429320E+05;
+    Omega22(7,4,0) = -1.2882395E-02;  Omega22(7,4,1) =  3.7306469E-01;  Omega22(7,4,2) = -3.7106760E+00;  Omega22(7,4,3) =  7.5444981E+06;
+    Omega22(7,5,0) = -1.7420606E-02;  Omega22(7,5,1) =  4.7126950E-01;  Omega22(7,5,2) = -4.3841087E+00;  Omega22(7,5,3) =  2.8275095E+07;
+    Omega22(7,6,0) = -1.0000000E+00;  Omega22(7,6,1) = -1.0000000E+00;  Omega22(7,6,2) = -1.0000000E+00;  Omega22(7,6,3) = -1.0000000E+00;
+    Omega22(7,7,0) = -1.0000000E+00;  Omega22(7,7,1) = -1.0000000E+00;  Omega22(7,7,2) = -1.0000000E+00;  Omega22(7,7,3) = -1.0000000E+00;
+    Omega22(7,8,0) = -1.0000000E+00;  Omega22(7,8,1) = -1.0000000E+00;  Omega22(7,8,2) = -1.0000000E+00;  Omega22(7,8,3) = -1.0000000E+00;
+    Omega22(7,9,0) = -1.0000000E+00;  Omega22(7,9,1) = -1.0000000E+00;  Omega22(7,9,2) = -1.0000000E+00;  Omega22(7,9,3) = -1.0000000E+00;
+    Omega22(7,10,0) = -1.0000000E+00; Omega22(7,10,1) = -1.0000000E+00; Omega22(7,10,2) = -1.0000000E+00; Omega22(7,10,3) = -1.0000000E+00;
+    // O2+(8)
+    Omega22(8,0,0) =  1.0000000E+00;  Omega22(8,0,1) =  1.0000000E+00;  Omega22(8,0,2) =  1.0000000E+00;  Omega22(8,0,3) =  1.0000000E+00;
+    Omega22(8,1,0) =  2.2455421E-02;  Omega22(8,1,1) = -4.5106797E-01;  Omega22(8,1,2) =  2.3763420E+00;  Omega22(8,1,3) =  4.7754696E+00;
+    Omega22(8,2,0) =  2.8664463E-02;  Omega22(8,2,1) = -5.8087240E-01;  Omega22(8,2,2) =  3.2564558E+00;  Omega22(8,2,3) =  6.6890428E-01;
+    Omega22(8,3,0) =  2.2679271E-02;  Omega22(8,3,1) = -4.5710920E-01;  Omega22(8,3,2) =  2.4427275E+00;  Omega22(8,3,3) =  3.6733514E+00;
+    Omega22(8,4,0) =  1.1205000E-02;  Omega22(8,4,1) = -1.8182149E-01;  Omega22(8,4,2) =  3.2624972E-01;  Omega22(8,4,3) =  5.5186183E+02;
+    Omega22(8,5,0) =  0.0000000E+00;  Omega22(8,5,1) =  8.3446262E-02;  Omega22(8,5,2) = -1.7191179E+00;  Omega22(8,5,3) =  8.0539928E+04;
+    Omega22(8,6,0) = -1.0000000E+00;  Omega22(8,6,1) = -1.0000000E+00;  Omega22(8,6,2) = -1.0000000E+00;  Omega22(8,6,3) = -1.0000000E+00;
+    Omega22(8,7,0) = -1.0000000E+00;  Omega22(8,7,1) = -1.0000000E+00;  Omega22(8,7,2) = -1.0000000E+00;  Omega22(8,7,3) = -1.0000000E+00;
+    Omega22(8,8,0) = -1.0000000E+00;  Omega22(8,8,1) = -1.0000000E+00;  Omega22(8,8,2) = -1.0000000E+00;  Omega22(8,8,3) = -1.0000000E+00;
+    Omega22(8,9,0) = -1.0000000E+00;  Omega22(8,9,1) = -1.0000000E+00;  Omega22(8,9,2) = -1.0000000E+00;  Omega22(8,9,3) = -1.0000000E+00;
+    Omega22(8,10,0) = -1.0000000E+00; Omega22(8,10,1) = -1.0000000E+00; Omega22(8,10,2) = -1.0000000E+00; Omega22(8,10,3) = -1.0000000E+00;
+    // N+(9)
+    Omega22(9,0,0) =  1.0000000E+00;  Omega22(9,0,1) =  1.0000000E+00;  Omega22(9,0,2) =  1.0000000E+00;  Omega22(9,0,3) =  1.0000000E+00;
+    Omega22(9,1,0) = -7.0776069E-03;  Omega22(9,1,1) =  1.7917938E-01;  Omega22(9,1,2) = -1.9102410E+00;  Omega22(9,1,3) =  4.6736263E+04;
+    Omega22(9,2,0) =  9.8019578E-03;  Omega22(9,2,1) = -1.4699425E-01;  Omega22(9,2,2) =  3.9382460E-02;  Omega22(9,2,3) =  1.5112165E+03;
+    Omega22(9,3,0) =  1.1716366E-02;  Omega22(9,3,1) = -1.9289789E-01;  Omega22(9,3,2) =  4.0269474E-01;  Omega22(9,3,3) =  6.0891590E+02;
+    Omega22(9,4,0) = -1.4271306E-02;  Omega22(9,4,1) =  3.0401993E-01;  Omega22(9,4,2) = -2.4573879E+00;  Omega22(9,4,3) =  5.3694705E+04;
+    Omega22(9,5,0) = -1.7907392E-02;  Omega22(9,5,1) =  4.1207892E-01;  Omega22(9,5,2) = -3.5343610E+00;  Omega22(9,5,3) =  1.4987678E+06;
+    Omega22(9,6,0) = -1.0000000E+00;  Omega22(9,6,1) = -1.0000000E+00;  Omega22(9,6,2) = -1.0000000E+00;  Omega22(9,6,3) = -1.0000000E+00;
+    Omega22(9,7,0) = -1.0000000E+00;  Omega22(9,7,1) = -1.0000000E+00;  Omega22(9,7,2) = -1.0000000E+00;  Omega22(9,7,3) = -1.0000000E+00;
+    Omega22(9,8,0) = -1.0000000E+00;  Omega22(9,8,1) = -1.0000000E+00;  Omega22(9,8,2) = -1.0000000E+00;  Omega22(9,8,3) = -1.0000000E+00;
+    Omega22(9,9,0) = -1.0000000E+00;  Omega22(9,9,1) = -1.0000000E+00;  Omega22(9,9,2) = -1.0000000E+00;  Omega22(9,9,3) = -1.0000000E+00;
+    Omega22(9,10,0) = -1.0000000E+00; Omega22(9,10,1) = -1.0000000E+00; Omega22(9,10,2) = -1.0000000E+00; Omega22(9,10,3) = -1.0000000E+00;
+    // O+(10)
+    Omega22(10,0,0) =  1.0000000E+00;  Omega22(10,0,1) =  1.0000000E+00;  Omega22(10,0,2) =  1.0000000E+00;  Omega22(10,0,3) =  1.0000000E+00;
+    Omega22(10,1,0) =  1.8733000E-02;  Omega22(10,1,1) = -3.6163781E-01;  Omega22(10,1,2) =  1.6947101E+00;  Omega22(10,1,3) =  2.5244859E+01;
+    Omega22(10,2,0) =  1.4207970E-02;  Omega22(10,2,1) = -2.4736726E-01;  Omega22(10,2,2) =  7.4561859E-01;  Omega22(10,2,3) =  3.2519188E+02;
+    Omega22(10,3,0) =  1.8015337E-02;  Omega22(10,3,1) = -3.4415293E-01;  Omega22(10,3,2) =  1.5658151E+00;  Omega22(10,3,3) =  3.3303758E+01;
+    Omega22(10,4,0) = -2.1681211E-02;  Omega22(10,4,1) =  5.2300453E-01;  Omega22(10,4,2) = -4.5118623E+00;  Omega22(10,4,3) =  2.3467766E+07;
+    Omega22(10,5,0) = -1.6032919E-02;  Omega22(10,5,1) =  3.7114396E-01;  Omega22(10,5,2) = -3.2050078E+00;  Omega22(10,5,3) =  5.8099314E+05;
+    Omega22(10,6,0) = -1.0000000E+00;  Omega22(10,6,1) = -1.0000000E+00;  Omega22(10,6,2) = -1.0000000E+00;  Omega22(10,6,3) = -1.0000000E+00;
+    Omega22(10,7,0) = -1.0000000E+00;  Omega22(10,7,1) = -1.0000000E+00;  Omega22(10,7,2) = -1.0000000E+00;  Omega22(10,7,3) = -1.0000000E+00;
+    Omega22(10,8,0) = -1.0000000E+00;  Omega22(10,8,1) = -1.0000000E+00;  Omega22(10,8,2) = -1.0000000E+00;  Omega22(10,8,3) = -1.0000000E+00;
+    Omega22(10,9,0) = -1.0000000E+00;  Omega22(10,9,1) = -1.0000000E+00;  Omega22(10,9,2) = -1.0000000E+00;  Omega22(10,9,3) = -1.0000000E+00;
+    Omega22(10,10,0) = -1.0000000E+00; Omega22(10,10,1) = -1.0000000E+00; Omega22(10,10,2) = -1.0000000E+00; Omega22(10,10,3) = -1.0000000E+00;
+
+
+
+
+    // Creation/Destruction (+1/-1), Index of monoatomic reactants
+    // Monoatomic species (N,O) recombine into diaatomic (N2, O2)
+    CatRecombTable(0,0) =  0; CatRecombTable(0,1) = 1;
+    CatRecombTable(1,0) =  1; CatRecombTable(1,1) = 4;
+    CatRecombTable(2,0) =  1; CatRecombTable(2,1) = 5;
+    CatRecombTable(3,0) =  0; CatRecombTable(3,1) = 1;
+    CatRecombTable(4,0) = -1; CatRecombTable(4,1) = 4;
+    CatRecombTable(5,0) = -1; CatRecombTable(5,1) = 5;
+    CatRecombTable(6,0) =  0; CatRecombTable(6,1) = 1;
+    CatRecombTable(7,0) =  0; CatRecombTable(7,1) = 1;
+    CatRecombTable(8,0) =  0; CatRecombTable(8,1) = 1;
+    CatRecombTable(9,0) =  0; CatRecombTable(9,1) = 1;
+    CatRecombTable(10,0) =  0; CatRecombTable(10,1) = 1;
+
 
     /*--- Values for Sutherland's formula. ---*/
     if (viscous) {
@@ -1796,7 +2753,7 @@ void CSU2TCLib::DiffusionCoeffWBE(){
       if (abs(Omega11(iSpecies, jSpecies, 0)) == 1.0 && ionization) coulomb = true;
 
       // Used Tve for electron collisions
-      const su2double T_col = (iSpecies == 0 && ionization) ? Tve : T; 
+      const su2double T_col = (iSpecies == 0 && ionization) ? Tve : T;
 
       /*--- Compute the collisional cross section (omega_ij) ---*/
       const su2double Omega_ij = ComputeCollisionCrossSection(iSpecies, jSpecies, T_col, true, coulomb) / PI_NUMBER;
@@ -1885,13 +2842,13 @@ su2double CSU2TCLib::ComputeCollisionCrossSection(unsigned iSpecies, unsigned jS
 
   const su2double pi = PI_NUMBER;
   const su2double Na = AVOGAD_CONSTANT;
-  
+
   if (coulomb) {
 
-    const su2double e_cgs = FUND_ELEC_CHARGE_CGS; // CGS unit of fundamental electric charge 
-    const su2double kb_cgs = BOLTZMANN_CONSTANT * 1E7; // CGS unit of Boltzmann Constant 
+    const su2double e_cgs = FUND_ELEC_CHARGE_CGS; // CGS unit of fundamental electric charge
+    const su2double kb_cgs = BOLTZMANN_CONSTANT * 1E7; // CGS unit of Boltzmann Constant
     const su2double ne_cgs = Na * rhos[0] / MolarMass[0] * 1E-6; // CGS unit of electron number density
-        
+
     const su2double debyeLength = sqrt(kb_cgs * T / 4 / pi / ne_cgs / pow(e_cgs,2));
     const su2double T_star = debyeLength / (pow(e_cgs,2) / (kb_cgs * T));
 
@@ -1914,7 +2871,7 @@ su2double CSU2TCLib::ComputeCollisionCrossSection(unsigned iSpecies, unsigned jS
     if (d1) {
       return 1E-20 * Omega11(iSpecies,jSpecies,3) * pow(T, Omega11(iSpecies,jSpecies,0)*log(T)*log(T) + Omega11(iSpecies,jSpecies,1)*log(T) + Omega11(iSpecies,jSpecies,2));
     }       return 1E-20 * Omega22(iSpecies,jSpecies,3) * pow(T, Omega22(iSpecies,jSpecies,0)*log(T)*log(T) + Omega22(iSpecies,jSpecies,1)*log(T) + Omega22(iSpecies,jSpecies,2));
-   
+
   }
 }
 
@@ -1923,7 +2880,7 @@ su2double CSU2TCLib::ComputeCollisionDelta(unsigned iSpecies, unsigned jSpecies,
   bool coulomb = false;
   if (abs(Omega11(iSpecies, jSpecies, 0)) == 1.0 && ionization) {
     coulomb = true;
-  } 
+  }
 
   const su2double Omega_ij = ComputeCollisionCrossSection(iSpecies, jSpecies, T, d1, coulomb);
   const su2double pi = PI_NUMBER;
@@ -1957,14 +2914,14 @@ void CSU2TCLib::DiffusionCoeffGY(){
     su2double denom = 0.0;
 
     for (jSpecies = 0; jSpecies < nSpecies; jSpecies++) {
-      if (jSpecies != iSpecies) { 
+      if (jSpecies != iSpecies) {
 
         const su2double Mj    = (MolarMass[jSpecies] + EPS);
         const su2double gam_j = rhos[jSpecies] / (Density*Mj);
 
         const su2double kb = BOLTZMANN_CONSTANT;
 
-        const su2double T_col = (iSpecies == 0 && ionization) ? Tve : T; 
+        const su2double T_col = (iSpecies == 0 && ionization) ? Tve : T;
 
         su2double d1_ij = ComputeCollisionDelta(iSpecies, jSpecies, Mi, Mj, T_col, true);
 
@@ -1995,7 +2952,7 @@ void CSU2TCLib::ViscosityGY(){
       const su2double Mj    = (MolarMass[jSpecies] + EPS);
       const su2double gam_j = rhos[jSpecies] / (Density*Mj);
 
-      const su2double T_col = (iSpecies == 0 && ionization) ? Tve : T; 
+      const su2double T_col = (iSpecies == 0 && ionization) ? Tve : T;
 
       su2double d2_ij = ComputeCollisionDelta(iSpecies, jSpecies, Mi, Mj, T_col, false);
 
@@ -2043,7 +3000,7 @@ void CSU2TCLib::ThermalConductivitiesGY(){
       const su2double gam_j = rhos[iSpecies] / (Density*Mj);
       const su2double a_ij = 1.0 + (1.0 - mi/mj)*(0.45 - 2.54*mi/mj) / ((1.0 + mi/mj)*(1.0 + mi/mj));
 
-      const su2double T_col = ((iSpecies == 0 && ionization) || (jSpecies == 0 && ionization)) ? Tve : T; 
+      const su2double T_col = ((iSpecies == 0 && ionization) || (jSpecies == 0 && ionization)) ? Tve : T;
 
       su2double d1_ij = ComputeCollisionDelta(iSpecies, jSpecies, Mi, Mj, T_col, true);
       su2double d2_ij = ComputeCollisionDelta(iSpecies, jSpecies, Mi, Mj, T_col, false);
@@ -2068,7 +3025,7 @@ void CSU2TCLib::ThermalConductivitiesGY(){
 
     /*--- Vibrational-electronic contribution to thermal conductivity ---*/
     if ((!ionization || iSpecies != 0) && RotationModes[iSpecies] != 0.0) ThermalCond_ve += (kb*Cvve/R*gam_i / denom_r);
-    
+
     if (ionization && iSpecies == 0) ThermalCond_ve += ((15.0/4.0)*kb*gam_i/(1.45*denom_re));
   }
 
@@ -2169,7 +3126,7 @@ vector<su2double>& CSU2TCLib::ComputeTemperatures(vector<su2double>& val_rhos, s
       Tve = Tve2;
       break;
     }       Tve = Tve2;
-   
+
   }
 
   // If the Newton-Raphson method has converged, assign the value of Tve.
@@ -2186,7 +3143,7 @@ vector<su2double>& CSU2TCLib::ComputeTemperatures(vector<su2double>& val_rhos, s
         break;
       }         if (rhoEve_t > rhoEve) Tve2 = Tve;
         else                  Tve_o = Tve;
-     
+
     }
   }
 

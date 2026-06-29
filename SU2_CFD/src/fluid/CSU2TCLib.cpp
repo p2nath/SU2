@@ -2137,7 +2137,7 @@ vector<su2double>& CSU2TCLib::GetSpeciesCvTraRot(){
 
   if(ionization) Cvtrs[0] = 0.0;
 
-  for (iSpecies = nEl; iSpecies < nHeavy; iSpecies++)
+  for (iSpecies = nEl; iSpecies <= nHeavy; iSpecies++)
     Cvtrs[iSpecies] = (3.0/2.0 + RotationModes[iSpecies]/2.0) * Ru/MolarMass[iSpecies];
 
   return Cvtrs;
@@ -3305,5 +3305,230 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) = 1.4766;  RxnConstantTable(4,1) = 1.6291;  RxnConstantTable(4,2) = 1.2153; RxnConstantTable(4,3) = -11.457; RxnConstantTable(4,4) = -0.009444;
       RxnConstantTable(5,0) = 1.4766;  RxnConstantTable(5,1) = 1.6291;  RxnConstantTable(5,2) = 1.2153; RxnConstantTable(5,3) = -11.457; RxnConstantTable(5,4) = -0.009444;
     }
+
+  } else if (gas_model == "AIR-11"){
+
+    if (iReaction <= 9) {
+
+      //N2 + M -> 2N + M
+      RxnConstantTable(0,0) = 3.4907;  RxnConstantTable(0,1) = 0.83133; RxnConstantTable(0,2) = 4.0978;  RxnConstantTable(0,3) = -12.728; RxnConstantTable(0,4) = 0.07487;   //n = 1E14
+      RxnConstantTable(1,0) = 2.0723;  RxnConstantTable(1,1) = 1.38970; RxnConstantTable(1,2) = 2.0617;  RxnConstantTable(1,3) = -11.828; RxnConstantTable(1,4) = 0.015105;  //n = 1E15
+      RxnConstantTable(2,0) = 1.6060;  RxnConstantTable(2,1) = 1.57320; RxnConstantTable(2,2) = 1.3923;  RxnConstantTable(2,3) = -11.533; RxnConstantTable(2,4) = -0.004543; //n = 1E16
+      RxnConstantTable(3,0) = 1.5351;  RxnConstantTable(3,1) = 1.60610; RxnConstantTable(3,2) = 1.2993;  RxnConstantTable(3,3) = -11.494; RxnConstantTable(3,4) = -0.00698;  //n = 1E17
+      RxnConstantTable(4,0) = 1.4766;  RxnConstantTable(4,1) = 1.62910; RxnConstantTable(4,2) = 1.2153;  RxnConstantTable(4,3) = -11.457; RxnConstantTable(4,4) = -0.00944;  //n = 1E18
+      RxnConstantTable(5,0) = 1.4766;  RxnConstantTable(5,1) = 1.62910; RxnConstantTable(5,2) = 1.2153;  RxnConstantTable(5,3) = -11.457; RxnConstantTable(5,4) = -0.00944;  //n = 1E19
+
+    } else if (iReaction > 9 && iReaction <= 19) {
+
+      //O2 + M -> 2O + M
+      RxnConstantTable(0,0) = 1.8103;  RxnConstantTable(0,1) = 1.9607;  RxnConstantTable(0,2) = 3.5716;  RxnConstantTable(0,3) = -7.3623;   RxnConstantTable(0,4) = 0.083861;
+      RxnConstantTable(1,0) = 0.91354; RxnConstantTable(1,1) = 2.3160;  RxnConstantTable(1,2) = 2.2885;  RxnConstantTable(1,3) = -6.7969;   RxnConstantTable(1,4) = 0.046338;
+      RxnConstantTable(2,0) = 0.64183; RxnConstantTable(2,1) = 2.4253;  RxnConstantTable(2,2) = 1.9026;  RxnConstantTable(2,3) = -6.6277;   RxnConstantTable(2,4) = 0.035151;
+      RxnConstantTable(3,0) = 0.55388; RxnConstantTable(3,1) = 2.4600;  RxnConstantTable(3,2) = 1.7763;  RxnConstantTable(3,3) = -6.5720;   RxnConstantTable(3,4) = 0.031445;
+      RxnConstantTable(4,0) = 0.52455; RxnConstantTable(4,1) = 2.4715;  RxnConstantTable(4,2) = 1.7342;  RxnConstantTable(4,3) = -6.55534;  RxnConstantTable(4,4) = 0.030209;
+      RxnConstantTable(5,0) = 0.50989; RxnConstantTable(5,1) = 2.4773;  RxnConstantTable(5,2) = 1.7132;  RxnConstantTable(5,3) = -6.5441;   RxnConstantTable(5,4) = 0.029591;
+
+    } else if (iReaction > 19 && iReaction <= 29) {
+
+      //NO + M -> N + O + M
+      RxnConstantTable(0,0) = 2.1649;  RxnConstantTable(0,1) = 0.078577;  RxnConstantTable(0,2) = 2.8508;  RxnConstantTable(0,3) = -8.5422; RxnConstantTable(0,4) = 0.053043;
+      RxnConstantTable(1,0) = 1.0072;  RxnConstantTable(1,1) = 0.53545;   RxnConstantTable(1,2) = 1.1911;  RxnConstantTable(1,3) = -7.8098; RxnConstantTable(1,4) = 0.004394;
+      RxnConstantTable(2,0) = 0.63817; RxnConstantTable(2,1) = 0.68189;   RxnConstantTable(2,2) = 0.66336; RxnConstantTable(2,3) = -7.5773; RxnConstantTable(2,4) = -0.011025;
+      RxnConstantTable(3,0) = 0.55889; RxnConstantTable(3,1) = 0.71558;   RxnConstantTable(3,2) = 0.55396; RxnConstantTable(3,3) = -7.5304; RxnConstantTable(3,4) = -0.014089;
+      RxnConstantTable(4,0) = 0.5150;  RxnConstantTable(4,1) = 0.73286;   RxnConstantTable(4,2) = 0.49096; RxnConstantTable(4,3) = -7.5025; RxnConstantTable(4,4) = -0.015938;
+      RxnConstantTable(5,0) = 0.50765; RxnConstantTable(5,1) = 0.73575;   RxnConstantTable(5,2) = 0.48042; RxnConstantTable(5,3) = -7.4979; RxnConstantTable(5,4) = -0.016247;
+
+    } else if (iReaction == 30) {
+
+      //N2 + O -> NO + N
+      RxnConstantTable(0,0) = 1.3261;  RxnConstantTable(0,1) = 0.75268; RxnConstantTable(0,2) = 1.2474;  RxnConstantTable(0,3) = -4.1857; RxnConstantTable(0,4) = 0.02184;
+      RxnConstantTable(1,0) = 1.0653;  RxnConstantTable(1,1) = 0.85417; RxnConstantTable(1,2) = 0.87093; RxnConstantTable(1,3) = -4.0188; RxnConstantTable(1,4) = 0.010721;
+      RxnConstantTable(2,0) = 0.96794; RxnConstantTable(2,1) = 0.89131; RxnConstantTable(2,2) = 0.7291;  RxnConstantTable(2,3) = -3.9555; RxnConstantTable(2,4) = 0.006488;
+      RxnConstantTable(3,0) = 0.97646; RxnConstantTable(3,1) = 0.89043; RxnConstantTable(3,2) = 0.74572; RxnConstantTable(3,3) = -3.9642; RxnConstantTable(3,4) = 0.007123;
+      RxnConstantTable(4,0) = 0.96188; RxnConstantTable(4,1) = 0.89617; RxnConstantTable(4,2) = 0.72479; RxnConstantTable(4,3) = -3.955;  RxnConstantTable(4,4) = 0.006509;
+      RxnConstantTable(5,0) = 0.96921; RxnConstantTable(5,1) = 0.89329; RxnConstantTable(5,2) = 0.73531; RxnConstantTable(5,3) = -3.9596; RxnConstantTable(5,4) = 0.006818;
+
+    } else if (iReaction == 31) {
+
+      //NO + O -> O2 + N
+      RxnConstantTable(0,0) = 0.35438;   RxnConstantTable(0,1) = -1.8821; RxnConstantTable(0,2) = -0.72111;  RxnConstantTable(0,3) = -1.1797;   RxnConstantTable(0,4) = -0.030831;
+      RxnConstantTable(1,0) = 0.093613;  RxnConstantTable(1,1) = -1.7806; RxnConstantTable(1,2) = -1.0975;   RxnConstantTable(1,3) = -1.0128;   RxnConstantTable(1,4) = -0.041949;
+      RxnConstantTable(2,0) = -0.003732; RxnConstantTable(2,1) = -1.7434; RxnConstantTable(2,2) = -1.2394;   RxnConstantTable(2,3) = -0.94952;  RxnConstantTable(2,4) = -0.046182;
+      RxnConstantTable(3,0) = 0.004815;  RxnConstantTable(3,1) = -1.7443; RxnConstantTable(3,2) = -1.2227;   RxnConstantTable(3,3) = -0.95824;  RxnConstantTable(3,4) = -0.045545;
+      RxnConstantTable(4,0) = -0.009758; RxnConstantTable(4,1) = -1.7386; RxnConstantTable(4,2) = -1.2436;   RxnConstantTable(4,3) = -0.949;    RxnConstantTable(4,4) = -0.046159;
+      RxnConstantTable(5,0) = -0.002428; RxnConstantTable(5,1) = -1.7415; RxnConstantTable(5,2) = -1.2331;   RxnConstantTable(5,3) = -0.95365;  RxnConstantTable(5,4) = -0.04585;
+
+    } else if (iReaction == 32) {
+
+      //N + O -> NO+ + e-
+      RxnConstantTable(0,0) = -2.1852;   RxnConstantTable(0,1) = -6.6709; RxnConstantTable(0,2) = -4.2968; RxnConstantTable(0,3) = -2.2175; RxnConstantTable(0,4) = -0.050748;
+      RxnConstantTable(1,0) = -1.0276;   RxnConstantTable(1,1) = -7.1278; RxnConstantTable(1,2) = -2.637;  RxnConstantTable(1,3) = -2.95;   RxnConstantTable(1,4) = -0.0021;
+      RxnConstantTable(2,0) = -0.65871;  RxnConstantTable(2,1) = -7.2742; RxnConstantTable(2,2) = -2.1096; RxnConstantTable(2,3) = -3.1823; RxnConstantTable(2,4) = 0.01331;
+      RxnConstantTable(3,0) = -0.57924;  RxnConstantTable(3,1) = -7.3079; RxnConstantTable(3,2) = -1.9999; RxnConstantTable(3,3) = -3.2294; RxnConstantTable(3,4) = 0.016382;
+      RxnConstantTable(4,0) = -0.53538;  RxnConstantTable(4,1) = -7.3252; RxnConstantTable(4,2) = -1.937;  RxnConstantTable(4,3) = -3.2572; RxnConstantTable(4,4) = 0.01823;
+      RxnConstantTable(5,0) = -0.52801;  RxnConstantTable(5,1) = -7.3281; RxnConstantTable(5,2) = -1.9264; RxnConstantTable(5,3) = -3.2618; RxnConstantTable(5,4) = 0.01854;
+
+    } else if (iReaction == 33) {
+
+      //N2 + e -> N + N + e
+      RxnConstantTable(0,0) = 3.4907;  RxnConstantTable(0,1) = 0.83133; RxnConstantTable(0,2) = 4.0978; RxnConstantTable(0,3) = -12.728; RxnConstantTable(0,4) = 0.07487;
+      RxnConstantTable(1,0) = 2.0723;  RxnConstantTable(1,1) = 1.3897;  RxnConstantTable(1,2) = 2.0617; RxnConstantTable(1,3) = -11.828; RxnConstantTable(1,4) = 0.015105;
+      RxnConstantTable(2,0) = 1.6060;  RxnConstantTable(2,1) = 1.5732;  RxnConstantTable(2,2) = 1.3923; RxnConstantTable(2,3) = -11.533; RxnConstantTable(2,4) = -0.004543;
+      RxnConstantTable(3,0) = 1.5351;  RxnConstantTable(3,1) = 1.6061;  RxnConstantTable(3,2) = 1.2993; RxnConstantTable(3,3) = -11.494; RxnConstantTable(3,4) = -0.00698;
+      RxnConstantTable(4,0) = 1.4766;  RxnConstantTable(4,1) = 1.6291;  RxnConstantTable(4,2) = 1.2153; RxnConstantTable(4,3) = -11.457; RxnConstantTable(4,4) = -0.009444;
+      RxnConstantTable(5,0) = 1.4766;  RxnConstantTable(5,1) = 1.6291;  RxnConstantTable(5,2) = 1.2153; RxnConstantTable(5,3) = -11.457; RxnConstantTable(5,4) = -0.009444;
+
+  } else if (iReaction == 34) {
+
+      // O + O -> O2+ + e-
+      RxnConstantTable(0,0) = -0.11682;  RxnConstantTable(0,1) =  -7.6883;  RxnConstantTable(0,2) =  -2.2498;  RxnConstantTable(0,3) =  -7.7905;  RxnConstantTable(0,4) = -0.011079;  //n = 1E14
+      RxnConstantTable(1,0) =  0.77986;  RxnConstantTable(1,1) =  -8.0436;  RxnConstantTable(1,2) = -0.96678;  RxnConstantTable(1,3) =  -8.3559;  RxnConstantTable(1,4) =  0.026440;  //n = 1E15
+      RxnConstantTable(2,0) =   1.0516;  RxnConstantTable(2,1) =  -8.1530;  RxnConstantTable(2,2) = -0.58082;  RxnConstantTable(2,3) =  -8.5251;  RxnConstantTable(2,4) =  0.037629;  //n = 1E16
+      RxnConstantTable(3,0) =   1.1395;  RxnConstantTable(3,1) =  -8.1876;  RxnConstantTable(3,2) = -0.45461;  RxnConstantTable(3,3) =  -8.5808;  RxnConstantTable(3,4) =  0.041333;  //n = 1E17
+      RxnConstantTable(4,0) =   1.1689;  RxnConstantTable(4,1) =  -8.1991;  RxnConstantTable(4,2) = -0.41245;  RxnConstantTable(4,3) =  -8.5995;  RxnConstantTable(4,4) =  0.042571;  //n = 1E18
+      RxnConstantTable(5,0) =   1.1835;  RxnConstantTable(5,1) =  -8.2049;  RxnConstantTable(5,2) = -0.39146;  RxnConstantTable(5,3) =  -8.6087;  RxnConstantTable(5,4) =  0.043187;  //n = 1E19
+
+    } else if (iReaction == 35) {
+
+      // N + N -> N2+ + e-
+      RxnConstantTable(0,0) =  -4.3785;  RxnConstantTable(0,1) =  -4.2726;  RxnConstantTable(0,2) =  -7.8709;  RxnConstantTable(0,3) =  -4.4628;  RxnConstantTable(0,4) = -0.124020;  //n = 1E14
+      RxnConstantTable(1,0) =  -2.9601;  RxnConstantTable(1,1) =  -4.8310;  RxnConstantTable(1,2) =  -5.8348;  RxnConstantTable(1,3) =  -5.3621;  RxnConstantTable(1,4) = -0.064252;  //n = 1E15
+      RxnConstantTable(2,0) =  -2.4938;  RxnConstantTable(2,1) =  -5.0145;  RxnConstantTable(2,2) =  -5.1654;  RxnConstantTable(2,3) =  -5.6577;  RxnConstantTable(2,4) = -0.044602;  //n = 1E16
+      RxnConstantTable(3,0) =  -2.4229;  RxnConstantTable(3,1) =  -5.0474;  RxnConstantTable(3,2) =  -5.0724;  RxnConstantTable(3,3) =  -5.6961;  RxnConstantTable(3,4) = -0.042167;  //n = 1E17
+      RxnConstantTable(4,0) =  -2.3644;  RxnConstantTable(4,1) =  -5.0704;  RxnConstantTable(4,2) =  -4.9885;  RxnConstantTable(4,3) =  -5.7332;  RxnConstantTable(4,4) = -0.039703;  //n = 1E18
+      RxnConstantTable(5,0) =  -2.3644;  RxnConstantTable(5,1) =  -5.0704;  RxnConstantTable(5,2) =  -4.9885;  RxnConstantTable(5,3) =  -5.7332;  RxnConstantTable(5,4) = -0.039703;  //n = 1E19
+
+    } else if (iReaction == 36) {
+
+      // NO+ + O -> N+ + O2
+      RxnConstantTable(0,0) =  -1.5349;  RxnConstantTable(0,1) =   1.6836;  RxnConstantTable(0,2) =  -2.9690;  RxnConstantTable(0,3) =  -6.4640;  RxnConstantTable(0,4) = -0.083316;  //n = 1E14
+      RxnConstantTable(1,0) =  -1.0864;  RxnConstantTable(1,1) =   1.5059;  RxnConstantTable(1,2) =  -2.3273;  RxnConstantTable(1,3) =  -6.7468;  RxnConstantTable(1,4) = -0.064551;  //n = 1E15
+      RxnConstantTable(2,0) = -0.95072;  RxnConstantTable(2,1) =   1.4513;  RxnConstantTable(2,2) =  -2.1346;  RxnConstantTable(2,3) =  -6.8313;  RxnConstantTable(2,4) = -0.058964;  //n = 1E16
+      RxnConstantTable(3,0) = -0.90672;  RxnConstantTable(3,1) =   1.4340;  RxnConstantTable(3,2) =  -2.0714;  RxnConstantTable(3,3) =  -6.8592;  RxnConstantTable(3,4) = -0.057110;  //n = 1E17
+      RxnConstantTable(4,0) = -0.89206;  RxnConstantTable(4,1) =   1.4282;  RxnConstantTable(4,2) =  -2.0504;  RxnConstantTable(4,3) =  -6.8685;  RxnConstantTable(4,4) = -0.056493;  //n = 1E18
+      RxnConstantTable(5,0) = -0.88472;  RxnConstantTable(5,1) =   1.4254;  RxnConstantTable(5,2) =  -2.0398;  RxnConstantTable(5,3) =  -6.8731;  RxnConstantTable(5,4) = -0.056184;  //n = 1E19
+
+    } else if (iReaction == 37) {
+
+      // N+ + N2 -> N2+ + N  (not in Tables A13-A15, forward only)
+      RxnConstantTable(0,0) = 0.0;  RxnConstantTable(0,1) = 0.0;  RxnConstantTable(0,2) = 0.0;  RxnConstantTable(0,3) = 0.0;  RxnConstantTable(0,4) = 0.0;
+      RxnConstantTable(1,0) = 0.0;  RxnConstantTable(1,1) = 0.0;  RxnConstantTable(1,2) = 0.0;  RxnConstantTable(1,3) = 0.0;  RxnConstantTable(1,4) = 0.0;
+      RxnConstantTable(2,0) = 0.0;  RxnConstantTable(2,1) = 0.0;  RxnConstantTable(2,2) = 0.0;  RxnConstantTable(2,3) = 0.0;  RxnConstantTable(2,4) = 0.0;
+      RxnConstantTable(3,0) = 0.0;  RxnConstantTable(3,1) = 0.0;  RxnConstantTable(3,2) = 0.0;  RxnConstantTable(3,3) = 0.0;  RxnConstantTable(3,4) = 0.0;
+      RxnConstantTable(4,0) = 0.0;  RxnConstantTable(4,1) = 0.0;  RxnConstantTable(4,2) = 0.0;  RxnConstantTable(4,3) = 0.0;  RxnConstantTable(4,4) = 0.0;
+      RxnConstantTable(5,0) = 0.0;  RxnConstantTable(5,1) = 0.0;  RxnConstantTable(5,2) = 0.0;  RxnConstantTable(5,3) = 0.0;  RxnConstantTable(5,4) = 0.0;
+
+    } else if (iReaction == 38) {
+
+      // O2+ + N -> N+ + O2
+      RxnConstantTable(0,0) =  -3.6030;  RxnConstantTable(0,1) =   2.7010;  RxnConstantTable(0,2) =  -5.0155;  RxnConstantTable(0,3) = -0.89125;  RxnConstantTable(0,4) = -0.122970;  //n = 1E14
+      RxnConstantTable(1,0) =  -2.8938;  RxnConstantTable(1,1) =   2.4218;  RxnConstantTable(1,2) =  -3.9975;  RxnConstantTable(1,3) =  -1.3409;  RxnConstantTable(1,4) = -0.093088;  //n = 1E15
+      RxnConstantTable(2,0) =  -2.6607;  RxnConstantTable(2,1) =   2.3300;  RxnConstantTable(2,2) =  -3.6628;  RxnConstantTable(2,3) =  -1.4887;  RxnConstantTable(2,4) = -0.083264;  //n = 1E16
+      RxnConstantTable(3,0) =  -2.6252;  RxnConstantTable(3,1) =   2.3136;  RxnConstantTable(3,2) =  -3.6163;  RxnConstantTable(3,3) =  -1.5079;  RxnConstantTable(3,4) = -0.082048;  //n = 1E17
+      RxnConstantTable(4,0) =  -2.5960;  RxnConstantTable(4,1) =   2.3021;  RxnConstantTable(4,2) =  -3.5744;  RxnConstantTable(4,3) =  -1.5264;  RxnConstantTable(4,4) = -0.080816;  //n = 1E18
+      RxnConstantTable(5,0) =  -2.5960;  RxnConstantTable(5,1) =   2.3021;  RxnConstantTable(5,2) =  -3.5744;  RxnConstantTable(5,3) =  -1.5264;  RxnConstantTable(5,4) = -0.080816;  //n = 1E19
+
+    } else if (iReaction == 39) {
+
+      // O+ + NO -> N+ + O2
+      RxnConstantTable(0,0) =  -1.6355;  RxnConstantTable(0,1) =  0.83058;  RxnConstantTable(0,2) =  -2.9952;  RxnConstantTable(0,3) =  -1.3794;  RxnConstantTable(0,4) = -0.079927;  //n = 1E14
+      RxnConstantTable(1,0) =  -1.6355;  RxnConstantTable(1,1) =  0.83058;  RxnConstantTable(1,2) =  -2.9952;  RxnConstantTable(1,3) =  -1.3794;  RxnConstantTable(1,4) = -0.079927;  //n = 1E15
+      RxnConstantTable(2,0) =  -1.6355;  RxnConstantTable(2,1) =  0.83058;  RxnConstantTable(2,2) =  -2.9952;  RxnConstantTable(2,3) =  -1.3794;  RxnConstantTable(2,4) = -0.079927;  //n = 1E16
+      RxnConstantTable(3,0) =  -1.6355;  RxnConstantTable(3,1) =  0.83058;  RxnConstantTable(3,2) =  -2.9952;  RxnConstantTable(3,3) =  -1.3794;  RxnConstantTable(3,4) = -0.079927;  //n = 1E17
+      RxnConstantTable(4,0) =  -1.6355;  RxnConstantTable(4,1) =  0.83058;  RxnConstantTable(4,2) =  -2.9952;  RxnConstantTable(4,3) =  -1.3794;  RxnConstantTable(4,4) = -0.079927;  //n = 1E18
+      RxnConstantTable(5,0) =  -1.6355;  RxnConstantTable(5,1) =  0.83058;  RxnConstantTable(5,2) =  -2.9952;  RxnConstantTable(5,3) =  -1.3794;  RxnConstantTable(5,4) = -0.079927;  //n = 1E19
+
+    } else if (iReaction == 40) {
+
+      // O2+ + N2 -> N2+ + O2
+      RxnConstantTable(0,0) =  -2.5811;  RxnConstantTable(0,1) =   2.2863;  RxnConstantTable(0,2) =  -5.0946;  RxnConstantTable(0,3) =  -2.0378;  RxnConstantTable(0,4) = -0.121920;  //n = 1E14
+      RxnConstantTable(1,0) =  -2.5811;  RxnConstantTable(1,1) =   2.2863;  RxnConstantTable(1,2) =  -5.0946;  RxnConstantTable(1,3) =  -2.0378;  RxnConstantTable(1,4) = -0.121920;  //n = 1E15
+      RxnConstantTable(2,0) =  -2.5811;  RxnConstantTable(2,1) =   2.2863;  RxnConstantTable(2,2) =  -5.0946;  RxnConstantTable(2,3) =  -2.0378;  RxnConstantTable(2,4) = -0.121920;  //n = 1E16
+      RxnConstantTable(3,0) =  -2.5811;  RxnConstantTable(3,1) =   2.2863;  RxnConstantTable(3,2) =  -5.0946;  RxnConstantTable(3,3) =  -2.0378;  RxnConstantTable(3,4) = -0.121920;  //n = 1E17
+      RxnConstantTable(4,0) =  -2.5811;  RxnConstantTable(4,1) =   2.2863;  RxnConstantTable(4,2) =  -5.0946;  RxnConstantTable(4,3) =  -2.0378;  RxnConstantTable(4,4) = -0.121920;  //n = 1E18
+      RxnConstantTable(5,0) =  -2.5811;  RxnConstantTable(5,1) =   2.2863;  RxnConstantTable(5,2) =  -5.0946;  RxnConstantTable(5,3) =  -2.0378;  RxnConstantTable(5,4) = -0.121920;  //n = 1E19
+
+    } else if (iReaction == 41) {
+
+      // O2+ + O -> O+ + O2  (not in Tables A13-A15, forward only)
+      RxnConstantTable(0,0) = 0.0;  RxnConstantTable(0,1) = 0.0;  RxnConstantTable(0,2) = 0.0;  RxnConstantTable(0,3) = 0.0;  RxnConstantTable(0,4) = 0.0;
+      RxnConstantTable(1,0) = 0.0;  RxnConstantTable(1,1) = 0.0;  RxnConstantTable(1,2) = 0.0;  RxnConstantTable(1,3) = 0.0;  RxnConstantTable(1,4) = 0.0;
+      RxnConstantTable(2,0) = 0.0;  RxnConstantTable(2,1) = 0.0;  RxnConstantTable(2,2) = 0.0;  RxnConstantTable(2,3) = 0.0;  RxnConstantTable(2,4) = 0.0;
+      RxnConstantTable(3,0) = 0.0;  RxnConstantTable(3,1) = 0.0;  RxnConstantTable(3,2) = 0.0;  RxnConstantTable(3,3) = 0.0;  RxnConstantTable(3,4) = 0.0;
+      RxnConstantTable(4,0) = 0.0;  RxnConstantTable(4,1) = 0.0;  RxnConstantTable(4,2) = 0.0;  RxnConstantTable(4,3) = 0.0;  RxnConstantTable(4,4) = 0.0;
+      RxnConstantTable(5,0) = 0.0;  RxnConstantTable(5,1) = 0.0;  RxnConstantTable(5,2) = 0.0;  RxnConstantTable(5,3) = 0.0;  RxnConstantTable(5,4) = 0.0;
+
+    } else if (iReaction == 42) {
+
+      // NO+ + N -> O+ + N2
+      RxnConstantTable(0,0) =  -1.2255;  RxnConstantTable(0,1) =  0.10039;  RxnConstantTable(0,2) =  -1.2212;  RxnConstantTable(0,3) = -0.89883;  RxnConstantTable(0,4) = -0.025232;  //n = 1E14
+      RxnConstantTable(1,0) = -0.51629;  RxnConstantTable(1,1) = -0.17877;  RxnConstantTable(1,2) = -0.20321;  RxnConstantTable(1,3) =  -1.3485;  RxnConstantTable(1,4) =  0.004649;  //n = 1E15
+      RxnConstantTable(2,0) = -0.28311;  RxnConstantTable(2,1) = -0.27056;  RxnConstantTable(2,2) =  0.13152;  RxnConstantTable(2,3) =  -1.4963;  RxnConstantTable(2,4) =  0.014474;  //n = 1E16
+      RxnConstantTable(3,0) = -0.24765;  RxnConstantTable(3,1) = -0.28699;  RxnConstantTable(3,2) =  0.17802;  RxnConstantTable(3,3) =  -1.5155;  RxnConstantTable(3,4) =  0.015692;  //n = 1E17
+      RxnConstantTable(4,0) = -0.21842;  RxnConstantTable(4,1) = -0.29849;  RxnConstantTable(4,2) =  0.21998;  RxnConstantTable(4,3) =  -1.5340;  RxnConstantTable(4,4) =  0.016923;  //n = 1E18
+      RxnConstantTable(5,0) = -0.21842;  RxnConstantTable(5,1) = -0.29849;  RxnConstantTable(5,2) =  0.21998;  RxnConstantTable(5,3) =  -1.5340;  RxnConstantTable(5,4) =  0.016923;  //n = 1E19
+
+    } else if (iReaction == 43) {
+
+      // NO+ + O2 -> O2+ + NO
+      RxnConstantTable(0,0) =   1.7139;  RxnConstantTable(0,1) =  0.86469;  RxnConstantTable(0,2) =   2.7679;  RxnConstantTable(0,3) =  -4.3932;  RxnConstantTable(0,4) =  0.070493;  //n = 1E14
+      RxnConstantTable(1,0) =   1.7139;  RxnConstantTable(1,1) =  0.86469;  RxnConstantTable(1,2) =   2.7679;  RxnConstantTable(1,3) =  -4.3932;  RxnConstantTable(1,4) =  0.070493;  //n = 1E15
+      RxnConstantTable(2,0) =   1.7139;  RxnConstantTable(2,1) =  0.86469;  RxnConstantTable(2,2) =   2.7679;  RxnConstantTable(2,3) =  -4.3932;  RxnConstantTable(2,4) =  0.070493;  //n = 1E16
+      RxnConstantTable(3,0) =   1.7139;  RxnConstantTable(3,1) =  0.86469;  RxnConstantTable(3,2) =   2.7679;  RxnConstantTable(3,3) =  -4.3932;  RxnConstantTable(3,4) =  0.070493;  //n = 1E17
+      RxnConstantTable(4,0) =   1.7139;  RxnConstantTable(4,1) =  0.86469;  RxnConstantTable(4,2) =   2.7679;  RxnConstantTable(4,3) =  -4.3932;  RxnConstantTable(4,4) =  0.070493;  //n = 1E18
+      RxnConstantTable(5,0) =   1.7139;  RxnConstantTable(5,1) =  0.86469;  RxnConstantTable(5,2) =   2.7679;  RxnConstantTable(5,3) =  -4.3932;  RxnConstantTable(5,4) =  0.070493;  //n = 1E19
+
+    } else if (iReaction == 44) {
+
+      // NO+ + O -> O2+ + N
+      RxnConstantTable(0,0) =   2.0681;  RxnConstantTable(0,1) =  -1.0173;  RxnConstantTable(0,2) =   2.0466;  RxnConstantTable(0,3) =  -5.5728;  RxnConstantTable(0,4) =  0.039655;  //n = 1E14
+      RxnConstantTable(1,0) =   1.8073;  RxnConstantTable(1,1) = -0.91584;  RxnConstantTable(1,2) =   1.6701;  RxnConstantTable(1,3) =  -5.4058;  RxnConstantTable(1,4) =  0.028533;  //n = 1E15
+      RxnConstantTable(2,0) =   1.7100;  RxnConstantTable(2,1) = -0.87869;  RxnConstantTable(2,2) =   1.5282;  RxnConstantTable(2,3) =  -5.3426;  RxnConstantTable(2,4) =  0.024301;  //n = 1E16
+      RxnConstantTable(3,0) =   1.7185;  RxnConstantTable(3,1) = -0.87958;  RxnConstantTable(3,2) =   1.5449;  RxnConstantTable(3,3) =  -5.3513;  RxnConstantTable(3,4) =  0.024936;  //n = 1E17
+      RxnConstantTable(4,0) =   1.7039;  RxnConstantTable(4,1) = -0.87383;  RxnConstantTable(4,2) =   1.5239;  RxnConstantTable(4,3) =  -5.3420;  RxnConstantTable(4,4) =  0.024321;  //n = 1E18
+      RxnConstantTable(5,0) =   1.7112;  RxnConstantTable(5,1) = -0.87672;  RxnConstantTable(5,2) =   1.5345;  RxnConstantTable(5,3) =  -5.3467;  RxnConstantTable(5,4) =  0.024631;  //n = 1E19
+
+    } else if (iReaction == 45) {
+
+      // O+ + N2 -> N2+ + O
+      RxnConstantTable(0,0) = -0.96795;  RxnConstantTable(0,1) =   2.2979;  RxnConstantTable(0,2) =  -2.3531;  RxnConstantTable(0,3) =  -1.3463;  RxnConstantTable(0,4) = -0.048042;  //n = 1E14
+      RxnConstantTable(1,0) =  -1.4164;  RxnConstantTable(1,1) =   2.4756;  RxnConstantTable(1,2) =  -2.9947;  RxnConstantTable(1,3) =  -1.0636;  RxnConstantTable(1,4) = -0.066805;  //n = 1E15
+      RxnConstantTable(2,0) =  -1.5522;  RxnConstantTable(2,1) =   2.5303;  RxnConstantTable(2,2) =  -3.1876;  RxnConstantTable(2,3) = -0.97903;  RxnConstantTable(2,4) = -0.072396;  //n = 1E16
+      RxnConstantTable(3,0) =  -1.5962;  RxnConstantTable(3,1) =   2.5476;  RxnConstantTable(3,2) =  -3.2507;  RxnConstantTable(3,3) = -0.95116;  RxnConstantTable(3,4) = -0.074249;  //n = 1E17
+      RxnConstantTable(4,0) =  -1.6108;  RxnConstantTable(4,1) =   2.5533;  RxnConstantTable(4,2) =  -3.2718;  RxnConstantTable(4,3) = -0.94186;  RxnConstantTable(4,4) = -0.074867;  //n = 1E18
+      RxnConstantTable(5,0) =  -1.6181;  RxnConstantTable(5,1) =   2.5562;  RxnConstantTable(5,2) =  -3.2823;  RxnConstantTable(5,3) = -0.93721;  RxnConstantTable(5,4) = -0.075176;  //n = 1E19
+
+    } else if (iReaction == 46) {
+
+      // NO+ + N -> N2+ + O
+      RxnConstantTable(0,0) =  -2.1934;  RxnConstantTable(0,1) =   2.3983;  RxnConstantTable(0,2) =  -3.5743;  RxnConstantTable(0,3) =  -2.2452;  RxnConstantTable(0,4) = -0.073271;  //n = 1E14
+      RxnConstantTable(1,0) =  -1.9325;  RxnConstantTable(1,1) =   2.2968;  RxnConstantTable(1,2) =  -3.1978;  RxnConstantTable(1,3) =  -2.4121;  RxnConstantTable(1,4) = -0.062149;  //n = 1E15
+      RxnConstantTable(2,0) =  -1.8352;  RxnConstantTable(2,1) =   2.2597;  RxnConstantTable(2,2) =  -3.0560;  RxnConstantTable(2,3) =  -2.4754;  RxnConstantTable(2,4) = -0.057919;  //n = 1E16
+      RxnConstantTable(3,0) =  -1.8438;  RxnConstantTable(3,1) =   2.2606;  RxnConstantTable(3,2) =  -3.0726;  RxnConstantTable(3,3) =  -2.4667;  RxnConstantTable(3,4) = -0.058554;  //n = 1E17
+      RxnConstantTable(4,0) =  -1.8292;  RxnConstantTable(4,1) =   2.2548;  RxnConstantTable(4,2) =  -3.0517;  RxnConstantTable(4,3) =  -2.4759;  RxnConstantTable(4,4) = -0.057940;  //n = 1E18
+      RxnConstantTable(5,0) =  -1.8365;  RxnConstantTable(5,1) =   2.2577;  RxnConstantTable(5,2) =  -3.0622;  RxnConstantTable(5,3) =  -2.4713;  RxnConstantTable(5,4) = -0.058248;  //n = 1E19
+
+    } else if (iReaction == 47) {
+
+      // O + e- -> O+ + e- + e-
+      RxnConstantTable(0,0) =  0.08045;  RxnConstantTable(0,1) =  -5.7393;  RxnConstantTable(0,2) =  -1.4195;  RxnConstantTable(0,3) =  -15.844;  RxnConstantTable(0,4) = -0.001087;  //n = 1E14
+      RxnConstantTable(1,0) =  0.52883;  RxnConstantTable(1,1) =  -5.9170;  RxnConstantTable(1,2) = -0.77795;  RxnConstantTable(1,3) =  -16.127;  RxnConstantTable(1,4) =  0.017675;  //n = 1E15
+      RxnConstantTable(2,0) =  0.66478;  RxnConstantTable(2,1) =  -5.9716;  RxnConstantTable(2,2) = -0.58486;  RxnConstantTable(2,3) =  -16.212;  RxnConstantTable(2,4) =  0.023273;  //n = 1E16
+      RxnConstantTable(3,0) =  0.70879;  RxnConstantTable(3,1) =  -5.9890;  RxnConstantTable(3,2) = -0.52169;  RxnConstantTable(3,3) =  -16.240;  RxnConstantTable(3,4) =  0.025127;  //n = 1E17
+      RxnConstantTable(4,0) =  0.72341;  RxnConstantTable(4,1) =  -5.9947;  RxnConstantTable(4,2) =  -0.5007;  RxnConstantTable(4,3) =  -16.249;  RxnConstantTable(4,4) =  0.025743;  //n = 1E18
+      RxnConstantTable(5,0) =  0.73078;  RxnConstantTable(5,1) =  -5.9976;  RxnConstantTable(5,2) = -0.49012;  RxnConstantTable(5,3) =  -16.254;  RxnConstantTable(5,4) =  0.026054;  //n = 1E19
+
+    } else if (iReaction == 48) {
+
+      // N + e- -> N+ + e- + e-
+      RxnConstantTable(0,0) =  -1.9094;  RxnConstantTable(0,1) =  -3.0267;  RxnConstantTable(0,2) =  -3.6935;  RxnConstantTable(0,3) =  -16.044;  RxnConstantTable(0,4) = -0.050183;  //n = 1E14
+      RxnConstantTable(1,0) =  -1.2002;  RxnConstantTable(1,1) =  -3.3059;  RxnConstantTable(1,2) =  -2.6755;  RxnConstantTable(1,3) =  -16.494;  RxnConstantTable(1,4) = -0.020301;  //n = 1E15
+      RxnConstantTable(2,0) = -0.96709;  RxnConstantTable(2,1) =  -3.3976;  RxnConstantTable(2,2) =  -2.3408;  RxnConstantTable(2,3) =  -16.642;  RxnConstantTable(2,4) = -0.010477;  //n = 1E16
+      RxnConstantTable(3,0) = -0.93184;  RxnConstantTable(3,1) =  -3.4140;  RxnConstantTable(3,2) =  -2.2946;  RxnConstantTable(3,3) =  -16.661;  RxnConstantTable(3,4) = -0.009269;  //n = 1E17
+      RxnConstantTable(4,0) =  -0.9026;  RxnConstantTable(4,1) =  -3.4255;  RxnConstantTable(4,2) =  -2.2526;  RxnConstantTable(4,3) =  -16.679;  RxnConstantTable(4,4) = -0.008037;  //n = 1E18
+      RxnConstantTable(5,0) =  -0.9026;  RxnConstantTable(5,1) =  -3.4255;  RxnConstantTable(5,2) =  -2.2526;  RxnConstantTable(5,3) =  -16.679;  RxnConstantTable(5,4) = -0.008037;  //n = 1E19
+
+    }
   }
+
 }

@@ -3410,13 +3410,21 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
 
     } else if (iReaction == 37) {
 
-      // N+ + N2 -> N2+ + N  (not in Tables A13-A15, forward only)
-      RxnConstantTable(0,0) = 0.0;  RxnConstantTable(0,1) = 0.0;  RxnConstantTable(0,2) = 0.0;  RxnConstantTable(0,3) = 0.0;  RxnConstantTable(0,4) = 0.0;
-      RxnConstantTable(1,0) = 0.0;  RxnConstantTable(1,1) = 0.0;  RxnConstantTable(1,2) = 0.0;  RxnConstantTable(1,3) = 0.0;  RxnConstantTable(1,4) = 0.0;
-      RxnConstantTable(2,0) = 0.0;  RxnConstantTable(2,1) = 0.0;  RxnConstantTable(2,2) = 0.0;  RxnConstantTable(2,3) = 0.0;  RxnConstantTable(2,4) = 0.0;
-      RxnConstantTable(3,0) = 0.0;  RxnConstantTable(3,1) = 0.0;  RxnConstantTable(3,2) = 0.0;  RxnConstantTable(3,3) = 0.0;  RxnConstantTable(3,4) = 0.0;
-      RxnConstantTable(4,0) = 0.0;  RxnConstantTable(4,1) = 0.0;  RxnConstantTable(4,2) = 0.0;  RxnConstantTable(4,3) = 0.0;  RxnConstantTable(4,4) = 0.0;
-      RxnConstantTable(5,0) = 0.0;  RxnConstantTable(5,1) = 0.0;  RxnConstantTable(5,2) = 0.0;  RxnConstantTable(5,3) = 0.0;  RxnConstantTable(5,4) = 0.0;
+      // N+ + N2 -> N2+ + N  (not in Tables A13-A15, forward only)  Using Mutation++ air-11 data
+      //RxnConstantTable(0,0) = -0.00271;  RxnConstantTable(0,1) = 0.02134;  RxnConstantTable(0,2) = -1.3825;  RxnConstantTable(0,3) = -0.64735;  RxnConstantTable(0,4) = -0.02472;
+      //RxnConstantTable(1,0) = -0.00271;  RxnConstantTable(1,1) = 0.02134;  RxnConstantTable(1,2) = -1.3825;  RxnConstantTable(1,3) = -0.64735;  RxnConstantTable(1,4) = -0.02472;
+      //RxnConstantTable(2,0) = -0.00271;  RxnConstantTable(2,1) = 0.02134;  RxnConstantTable(2,2) = -1.3825;  RxnConstantTable(2,3) = -0.64735;  RxnConstantTable(2,4) = -0.02472;
+      //RxnConstantTable(3,0) = -0.00271;  RxnConstantTable(3,1) = 0.02134;  RxnConstantTable(3,2) = -1.3825;  RxnConstantTable(3,3) = -0.64735;  RxnConstantTable(3,4) = -0.02472;
+      //RxnConstantTable(4,0) = -0.00271;  RxnConstantTable(4,1) = 0.02134;  RxnConstantTable(4,2) = -1.3825;  RxnConstantTable(4,3) = -0.64735;  RxnConstantTable(4,4) = -0.02472;
+      //RxnConstantTable(5,0) = -0.00271;  RxnConstantTable(5,1) = 0.02134;  RxnConstantTable(5,2) = -1.3825;  RxnConstantTable(5,3) = -0.64735;  RxnConstantTable(5,4) = -0.02472;
+
+      // N+ + N2 -> N2+ + N   (refit from NASA RP-1232, valid 2000-30000 K)
+      RxnConstantTable(0,0) = -2.85898;  RxnConstantTable(0,1) = -2.69958;  RxnConstantTable(0,2) = -13.5303; RxnConstantTable(0,3) = 6.05649;   RxnConstantTable(0,4) = -0.483583; //n = 1E14
+      RxnConstantTable(1,0) = -1.92614;  RxnConstantTable(1,1) = -2.67693;  RxnConstantTable(1,2) = -10.5971; RxnConstantTable(1,3) = 4.69519;   RxnConstantTable(1,4) = -0.402935; //n = 1E15
+      RxnConstantTable(2,0) = -1.01745;  RxnConstantTable(2,1) = -2.36419;  RxnConstantTable(2,2) = -7.47922; RxnConstantTable(2,3) = 3.14358;   RxnConstantTable(2,4) = -0.308171; //n = 1E16
+      RxnConstantTable(3,0) = -0.323931; RxnConstantTable(3,1) = -1.86662;  RxnConstantTable(3,2) = -4.81154; RxnConstantTable(3,3) = 1.73391;   RxnConstantTable(3,4) = -0.219949; //n = 1E17
+      RxnConstantTable(4,0) = 0.146971;  RxnConstantTable(4,1) = -1.18386;  RxnConstantTable(4,2) = -2.52465; RxnConstantTable(4,3) = 0.437343;  RxnConstantTable(4,4) = -0.136602; //n = 1E18
+      RxnConstantTable(5,0) = 0.230879;  RxnConstantTable(5,1) = -0.644595; RxnConstantTable(5,2) = -1.47619; RxnConstantTable(5,3) = -0.231832; RxnConstantTable(5,4) = -0.091808; //n = 1E19
 
     } else if (iReaction == 38) {
 
@@ -3450,13 +3458,21 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
 
     } else if (iReaction == 41) {
 
-      // O2+ + O -> O+ + O2  (not in Tables A13-A15, forward only)
-      RxnConstantTable(0,0) = 0.0;  RxnConstantTable(0,1) = 0.0;  RxnConstantTable(0,2) = 0.0;  RxnConstantTable(0,3) = 0.0;  RxnConstantTable(0,4) = 0.0;
-      RxnConstantTable(1,0) = 0.0;  RxnConstantTable(1,1) = 0.0;  RxnConstantTable(1,2) = 0.0;  RxnConstantTable(1,3) = 0.0;  RxnConstantTable(1,4) = 0.0;
-      RxnConstantTable(2,0) = 0.0;  RxnConstantTable(2,1) = 0.0;  RxnConstantTable(2,2) = 0.0;  RxnConstantTable(2,3) = 0.0;  RxnConstantTable(2,4) = 0.0;
-      RxnConstantTable(3,0) = 0.0;  RxnConstantTable(3,1) = 0.0;  RxnConstantTable(3,2) = 0.0;  RxnConstantTable(3,3) = 0.0;  RxnConstantTable(3,4) = 0.0;
-      RxnConstantTable(4,0) = 0.0;  RxnConstantTable(4,1) = 0.0;  RxnConstantTable(4,2) = 0.0;  RxnConstantTable(4,3) = 0.0;  RxnConstantTable(4,4) = 0.0;
-      RxnConstantTable(5,0) = 0.0;  RxnConstantTable(5,1) = 0.0;  RxnConstantTable(5,2) = 0.0;  RxnConstantTable(5,3) = 0.0;  RxnConstantTable(5,4) = 0.0;
+      // O2+ + O -> O+ + O2  (not in Tables A13-A15, forward only)  Using Mutation++ air-11 data
+      //RxnConstantTable(0,0) = -0.6531;  RxnConstantTable(0,1) = -0.36419;  RxnConstantTable(0,2) = -1.56307;  RxnConstantTable(0,3) = -1.197;  RxnConstantTable(0,4) = -0.02707;
+      //RxnConstantTable(1,0) = -0.6531;  RxnConstantTable(1,1) = -0.36419;  RxnConstantTable(1,2) = -1.56307;  RxnConstantTable(1,3) = -1.197;  RxnConstantTable(1,4) = -0.02707;
+      //RxnConstantTable(2,0) = -0.6531;  RxnConstantTable(2,1) = -0.36419;  RxnConstantTable(2,2) = -1.56307;  RxnConstantTable(2,3) = -1.197;  RxnConstantTable(2,4) = -0.02707;
+      //RxnConstantTable(3,0) = -0.6531;  RxnConstantTable(3,1) = -0.36419;  RxnConstantTable(3,2) = -1.56307;  RxnConstantTable(3,3) = -1.197;  RxnConstantTable(3,4) = -0.02707;
+      //RxnConstantTable(4,0) = -0.6531;  RxnConstantTable(4,1) = -0.36419;  RxnConstantTable(4,2) = -1.56307;  RxnConstantTable(4,3) = -1.197;  RxnConstantTable(4,4) = -0.02707;
+      //RxnConstantTable(5,0) = -0.6531;  RxnConstantTable(5,1) = -0.36419;  RxnConstantTable(5,2) = -1.56307;  RxnConstantTable(5,3) = -1.197;  RxnConstantTable(5,4) = -0.02707;
+
+      //O + O2+ -> O2 + O+   (refit from NASA RP-1232, valid 2000-30000 K)
+      RxnConstantTable(0,0) = 0.397867;  RxnConstantTable(0,1) = 6.25044;   RxnConstantTable(0,2) = 9.50945;  RxnConstantTable(0,3) = -10.8487;  RxnConstantTable(0,4) = 0.712607;  //n = 1E14
+      RxnConstantTable(1,0) = -0.456737; RxnConstantTable(1,1) = 5.83809;   RxnConstantTable(1,2) = 6.45651;  RxnConstantTable(1,3) = -9.21609;  RxnConstantTable(1,4) = 0.601659;  //n = 1E15
+      RxnConstantTable(2,0) = -1.08176;  RxnConstantTable(2,1) = 4.75297;   RxnConstantTable(2,2) = 3.44499;  RxnConstantTable(2,3) = -7.22751;  RxnConstantTable(2,4) = 0.444605;  //n = 1E16
+      RxnConstantTable(3,0) = -1.38293;  RxnConstantTable(3,1) = 3.3259;    RxnConstantTable(3,2) = 1.04416;  RxnConstantTable(3,3) = -5.33071;  RxnConstantTable(3,4) = 0.280138;  //n = 1E17
+      RxnConstantTable(4,0) = -1.38452;  RxnConstantTable(4,1) = 1.63499;   RxnConstantTable(4,2) = -0.82487; RxnConstantTable(4,3) = -3.5436;   RxnConstantTable(4,4) = 0.113324;  //n = 1E18
+      RxnConstantTable(5,0) = -1.1651;   RxnConstantTable(5,1) = 0.532367;  RxnConstantTable(5,2) = -1.5107;  RxnConstantTable(5,3) = -2.64254;  RxnConstantTable(5,4) = 0.0219787; //n = 1E19
 
     } else if (iReaction == 42) {
 

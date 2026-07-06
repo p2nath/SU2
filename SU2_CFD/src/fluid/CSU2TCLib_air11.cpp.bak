@@ -1170,7 +1170,7 @@ CSU2TCLib::CSU2TCLib(const CConfig* config, unsigned short val_nDim, bool viscou
 
     /*--- Define parameters of the gas model ---*/
     gamma       = 1.4;
-    nReactions  = 47;
+    nReactions  = 49;
     ionization  = true;
 
     Reactions.resize(nReactions,2,6,0.0);
@@ -1522,40 +1522,40 @@ CSU2TCLib::CSU2TCLib(const CConfig* config, unsigned short val_nDim, bool viscou
     Reactions(36,0,0)=6;   Reactions(36,0,1)=5;   Reactions(36,0,2)=nSpecies;   Reactions(36,1,0)=9;   Reactions(36,1,1)=2;   Reactions(36,1,2)=nSpecies;
 
     // N+ + N2 -> N2+ + N
-    //Reactions(37,0,0)=9;   Reactions(37,0,1)=1;   Reactions(37,0,2)=nSpecies;   Reactions(37,1,0)=7;   Reactions(37,1,1)=4;   Reactions(37,1,2)=nSpecies;
+    Reactions(37,0,0)=9;   Reactions(37,0,1)=1;   Reactions(37,0,2)=nSpecies;   Reactions(37,1,0)=7;   Reactions(37,1,1)=4;   Reactions(37,1,2)=nSpecies;
 
     // O2+ + N -> N+ + O2
-    Reactions(37,0,0)=8;   Reactions(37,0,1)=4;   Reactions(37,0,2)=nSpecies;   Reactions(37,1,0)=9;   Reactions(37,1,1)=2;   Reactions(37,1,2)=nSpecies;
+    Reactions(38,0,0)=8;   Reactions(38,0,1)=4;   Reactions(38,0,2)=nSpecies;   Reactions(38,1,0)=9;   Reactions(38,1,1)=2;   Reactions(38,1,2)=nSpecies;
 
     // O+ + NO -> N+ + O2
-    Reactions(38,0,0)=10;  Reactions(38,0,1)=3;   Reactions(38,0,2)=nSpecies;   Reactions(38,1,0)=9;   Reactions(38,1,1)=2;   Reactions(38,1,2)=nSpecies;
+    Reactions(39,0,0)=10;  Reactions(39,0,1)=3;   Reactions(39,0,2)=nSpecies;   Reactions(39,1,0)=9;   Reactions(39,1,1)=2;   Reactions(39,1,2)=nSpecies;
 
     // O2+ + N2 -> N2+ + O2
-    Reactions(39,0,0)=8;   Reactions(39,0,1)=1;   Reactions(39,0,2)=nSpecies;   Reactions(39,1,0)=7;   Reactions(39,1,1)=2;   Reactions(39,1,2)=nSpecies;
+    Reactions(40,0,0)=8;   Reactions(40,0,1)=1;   Reactions(40,0,2)=nSpecies;   Reactions(40,1,0)=7;   Reactions(40,1,1)=2;   Reactions(40,1,2)=nSpecies;
 
     // O2+ + O -> O+ + O2
-    //Reactions(41,0,0)=8;   Reactions(41,0,1)=5;   Reactions(41,0,2)=nSpecies;   Reactions(41,1,0)=10;  Reactions(41,1,1)=2;   Reactions(41,1,2)=nSpecies;
+    Reactions(41,0,0)=8;   Reactions(41,0,1)=5;   Reactions(41,0,2)=nSpecies;   Reactions(41,1,0)=10;  Reactions(41,1,1)=2;   Reactions(41,1,2)=nSpecies;
 
     // NO+ + N -> O+ + N2
-    Reactions(40,0,0)=6;   Reactions(40,0,1)=4;   Reactions(40,0,2)=nSpecies;   Reactions(40,1,0)=10;  Reactions(40,1,1)=1;   Reactions(40,1,2)=nSpecies;
+    Reactions(42,0,0)=6;   Reactions(42,0,1)=4;   Reactions(42,0,2)=nSpecies;   Reactions(42,1,0)=10;  Reactions(42,1,1)=1;   Reactions(42,1,2)=nSpecies;
 
     // NO+ + O2 -> O2+ + NO
-    Reactions(41,0,0)=6;   Reactions(41,0,1)=2;   Reactions(41,0,2)=nSpecies;   Reactions(41,1,0)=8;   Reactions(41,1,1)=3;   Reactions(41,1,2)=nSpecies;
+    Reactions(43,0,0)=6;   Reactions(43,0,1)=2;   Reactions(43,0,2)=nSpecies;   Reactions(43,1,0)=8;   Reactions(43,1,1)=3;   Reactions(43,1,2)=nSpecies;
 
     // NO+ + O -> O2+ + N
-    Reactions(42,0,0)=6;   Reactions(42,0,1)=5;   Reactions(42,0,2)=nSpecies;   Reactions(42,1,0)=8;   Reactions(42,1,1)=4;   Reactions(42,1,2)=nSpecies;
+    Reactions(44,0,0)=6;   Reactions(44,0,1)=5;   Reactions(44,0,2)=nSpecies;   Reactions(44,1,0)=8;   Reactions(44,1,1)=4;   Reactions(44,1,2)=nSpecies;
 
     // O+ + N2 -> N2+ + O
-    Reactions(43,0,0)=10;  Reactions(43,0,1)=1;   Reactions(43,0,2)=nSpecies;   Reactions(43,1,0)=7;   Reactions(43,1,1)=5;   Reactions(43,1,2)=nSpecies;
+    Reactions(45,0,0)=10;  Reactions(45,0,1)=1;   Reactions(45,0,2)=nSpecies;   Reactions(45,1,0)=7;   Reactions(45,1,1)=5;   Reactions(45,1,2)=nSpecies;
 
     // NO+ + N -> N2+ + O
-    Reactions(44,0,0)=6;   Reactions(44,0,1)=4;   Reactions(44,0,2)=nSpecies;   Reactions(44,1,0)=7;   Reactions(44,1,1)=5;   Reactions(44,1,2)=nSpecies;
+    Reactions(46,0,0)=6;   Reactions(46,0,1)=4;   Reactions(46,0,2)=nSpecies;   Reactions(46,1,0)=7;   Reactions(46,1,1)=5;   Reactions(46,1,2)=nSpecies;
 
     // O + e- -> O+ + e- + e-
-    Reactions(45,0,0)=5;   Reactions(45,0,1)=0;   Reactions(45,0,2)=nSpecies;   Reactions(45,1,0)=10;  Reactions(45,1,1)=0;   Reactions(45,1,2)=0;
+    Reactions(47,0,0)=5;   Reactions(47,0,1)=0;   Reactions(47,0,2)=nSpecies;   Reactions(47,1,0)=10;  Reactions(47,1,1)=0;   Reactions(47,1,2)=0;
 
     // N + e- -> N+ + e- + e-
-    Reactions(46,0,0)=4;   Reactions(46,0,1)=0;   Reactions(46,0,2)=nSpecies;   Reactions(46,1,0)=9;   Reactions(46,1,1)=0;   Reactions(46,1,2)=0;
+    Reactions(48,0,0)=4;   Reactions(48,0,1)=0;   Reactions(48,0,2)=nSpecies;   Reactions(48,1,0)=9;   Reactions(48,1,1)=0;   Reactions(48,1,2)=0;
 
     /*--- Set Arrhenius coefficients for reactions ---*/
     // Pre-exponential factor
@@ -1662,64 +1662,64 @@ CSU2TCLib::CSU2TCLib(const CConfig* config, unsigned short val_nDim, bool viscou
     ArrheniusTheta[36]       = 77200.0;
 
     // Reaction 37: N+ + N2 -> N2+ + N
-    //ArrheniusCoefficient[37] = 1.0E+12;
-    //ArrheniusEta[37]         = 0.5;
-    //ArrheniusTheta[37]       = 12200.0;
+    ArrheniusCoefficient[37] = 1.0E+12;
+    ArrheniusEta[37]         = 0.5;
+    ArrheniusTheta[37]       = 12200.0;
 
-    // Reaction 37: O2+ + N -> N+ + O2
-    ArrheniusCoefficient[37] = 8.7E+13;
-    ArrheniusEta[37]         = 0.14;
-    ArrheniusTheta[37]       = 28600.0;
+    // Reaction 38: O2+ + N -> N+ + O2
+    ArrheniusCoefficient[38] = 8.7E+13;
+    ArrheniusEta[38]         = 0.14;
+    ArrheniusTheta[38]       = 28600.0;
 
-    // Reaction 38: O+ + NO -> N+ + O2
-    ArrheniusCoefficient[38] = 1.4E+05;
-    ArrheniusEta[38]         = 1.9;
-    ArrheniusTheta[38]       = 26600.0;
+    // Reaction 39: O+ + NO -> N+ + O2
+    ArrheniusCoefficient[39] = 1.4E+05;
+    ArrheniusEta[39]         = 1.9;
+    ArrheniusTheta[39]       = 26600.0;
 
-    // Reaction 39: O2+ + N2 -> N2+ + O2
-    ArrheniusCoefficient[39] = 9.9E+12;
-    ArrheniusEta[39]         = 0.0;
-    ArrheniusTheta[39]       = 40700.0;
+    // Reaction 40: O2+ + N2 -> N2+ + O2
+    ArrheniusCoefficient[40] = 9.9E+12;
+    ArrheniusEta[40]         = 0.0;
+    ArrheniusTheta[40]       = 40700.0;
 
     // Reaction 41: O2+ + O -> O+ + O2
-    //ArrheniusCoefficient[41] = 4.0E+12;
-    //ArrheniusEta[41]         = 0.09;
-    //ArrheniusTheta[41]       = 18000.0;
+    ArrheniusCoefficient[41] = 4.0E+12;
+    ArrheniusEta[41]         = 0.09;
+    ArrheniusTheta[41]       = 18000.0;
 
-    // Reaction 40: NO+ + N -> O+ + N2
-    ArrheniusCoefficient[40] = 3.4E+13;
-    ArrheniusEta[40]         = -1.08;
-    ArrheniusTheta[40]       = 12800.0;
+    // Reaction 42: NO+ + N -> O+ + N2
+    ArrheniusCoefficient[42] = 3.4E+13;
+    ArrheniusEta[42]         = -1.08;
+    ArrheniusTheta[42]       = 12800.0;
 
-    // Reaction 41: NO+ + O2 -> O2+ + NO
-    ArrheniusCoefficient[41] = 2.4E+13;
-    ArrheniusEta[41]         = 0.41;
-    ArrheniusTheta[41]       = 32600.0;
+    // Reaction 43: NO+ + O2 -> O2+ + NO
+    ArrheniusCoefficient[43] = 2.4E+13;
+    ArrheniusEta[43]         = 0.41;
+    ArrheniusTheta[43]       = 32600.0;
 
-    // Reaction 42: NO+ + O -> O2+ + N
-    ArrheniusCoefficient[42] = 7.2E+12;
-    ArrheniusEta[42]         = 0.29;
-    ArrheniusTheta[42]       = 48600.0;
+    // Reaction 44: NO+ + O -> O2+ + N
+    ArrheniusCoefficient[44] = 7.2E+12;
+    ArrheniusEta[44]         = 0.29;
+    ArrheniusTheta[44]       = 48600.0;
 
-    // Reaction 43: O+ + N2 -> N2+ + O
-    ArrheniusCoefficient[43] = 9.1E+11;
-    ArrheniusEta[43]         = 0.36;
-    ArrheniusTheta[43]       = 22800.0;
+    // Reaction 45: O+ + N2 -> N2+ + O
+    ArrheniusCoefficient[45] = 9.1E+11;
+    ArrheniusEta[45]         = 0.36;
+    ArrheniusTheta[45]       = 22800.0;
 
-    // Reaction 44: NO+ + N -> N2+ + O
-    ArrheniusCoefficient[44] = 7.2E+13;
-    ArrheniusEta[44]         = 0.0;
-    ArrheniusTheta[44]       = 35500.0;
+    // Reaction 46: NO+ + N -> N2+ + O
+    ArrheniusCoefficient[46] = 7.2E+13;
+    ArrheniusEta[46]         = 0.0;
+    ArrheniusTheta[46]       = 35500.0;
 
-    // Reaction 45: O + e- -> O+ + e- + e-
-    ArrheniusCoefficient[45] = 3.9E+33;
-    ArrheniusEta[45]         = -3.78;
-    ArrheniusTheta[45]       = 158500.0;
+    // Reaction 47: O + e- -> O+ + e- + e-
+    ArrheniusCoefficient[47] = 3.9E+33;
+    ArrheniusEta[47]         = -3.78;
+    ArrheniusTheta[47]       = 158500.0;
 
-    // Reaction 46: N + e- -> N+ + e- + e-
-    ArrheniusCoefficient[46] = 2.5E+34;
-    ArrheniusEta[46]         = -3.82;
-    ArrheniusTheta[46]       = 168200.0;
+    // Reaction 48: N + e- -> N+ + e- + e-
+    ArrheniusCoefficient[48] = 2.5E+34;
+    ArrheniusEta[48]         = -3.82;
+    ArrheniusTheta[48]       = 168200.0;
     /*--- Set rate-controlling temperature exponents ---*/
     //  -----------  Tc = Ttr^a * Tve^b  -----------
     //
@@ -1793,24 +1793,24 @@ CSU2TCLib::CSU2TCLib(const CConfig* config, unsigned short val_nDim, bool viscou
     // Reaction 35: N+N -> N2++e-  (associative ionization)
     Tcf_a[35] = 1.0; Tcf_b[35] = 0.0; Tcb_a[35] = 0.5; Tcb_b[35] = 0.5;
 
-    // Reactions 36-44: charge exchange
+    // Reactions 36-46: charge exchange
     Tcf_a[36] = 1.0; Tcf_b[36] = 0.0; Tcb_a[36] = 1.0; Tcb_b[36] = 0.0;
-    //Tcf_a[37] = 1.0; Tcf_b[37] = 0.0; Tcb_a[37] = 1.0; Tcb_b[37] = 0.0;
     Tcf_a[37] = 1.0; Tcf_b[37] = 0.0; Tcb_a[37] = 1.0; Tcb_b[37] = 0.0;
     Tcf_a[38] = 1.0; Tcf_b[38] = 0.0; Tcb_a[38] = 1.0; Tcb_b[38] = 0.0;
     Tcf_a[39] = 1.0; Tcf_b[39] = 0.0; Tcb_a[39] = 1.0; Tcb_b[39] = 0.0;
-    //Tcf_a[41] = 1.0; Tcf_b[41] = 0.0; Tcb_a[41] = 1.0; Tcb_b[41] = 0.0;
     Tcf_a[40] = 1.0; Tcf_b[40] = 0.0; Tcb_a[40] = 1.0; Tcb_b[40] = 0.0;
     Tcf_a[41] = 1.0; Tcf_b[41] = 0.0; Tcb_a[41] = 1.0; Tcb_b[41] = 0.0;
     Tcf_a[42] = 1.0; Tcf_b[42] = 0.0; Tcb_a[42] = 1.0; Tcb_b[42] = 0.0;
     Tcf_a[43] = 1.0; Tcf_b[43] = 0.0; Tcb_a[43] = 1.0; Tcb_b[43] = 0.0;
     Tcf_a[44] = 1.0; Tcf_b[44] = 0.0; Tcb_a[44] = 1.0; Tcb_b[44] = 0.0;
+    Tcf_a[45] = 1.0; Tcf_b[45] = 0.0; Tcb_a[45] = 1.0; Tcb_b[45] = 0.0;
+    Tcf_a[46] = 1.0; Tcf_b[46] = 0.0; Tcb_a[46] = 1.0; Tcb_b[46] = 0.0;
 
-    // Reaction 45: O+e- -> O++e-+e-  (electron impact ionization)
-    Tcf_a[45] = 0.0; Tcf_b[45] = 1.0; Tcb_a[45] = 0.0; Tcb_b[45] = 1.0;
+    // Reaction 47: O+e- -> O++e-+e-  (electron impact ionization)
+    Tcf_a[47] = 0.0; Tcf_b[47] = 1.0; Tcb_a[47] = 0.0; Tcb_b[47] = 1.0;
 
-    // Reaction 46: N+e- -> N++e-+e-  (electron impact ionization)
-    Tcf_a[46] = 0.0; Tcf_b[46] = 1.0; Tcb_a[46] = 0.0; Tcb_b[46] = 1.0;
+    // Reaction 48: N+e- -> N++e-+e-  (electron impact ionization)
+    Tcf_a[48] = 0.0; Tcf_b[48] = 1.0; Tcb_a[48] = 0.0; Tcb_b[48] = 1.0;
     /*--- Collision integral data ---*/
     // Index 1: collider
     // Index 2: partner
@@ -3408,7 +3408,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) = -0.89206;  RxnConstantTable(4,1) =   1.4282;  RxnConstantTable(4,2) =  -2.0504;  RxnConstantTable(4,3) =  -6.8685;  RxnConstantTable(4,4) = -0.056493;  //n = 1E18
       RxnConstantTable(5,0) = -0.88472;  RxnConstantTable(5,1) =   1.4254;  RxnConstantTable(5,2) =  -2.0398;  RxnConstantTable(5,3) =  -6.8731;  RxnConstantTable(5,4) = -0.056184;  //n = 1E19
 
-    //} else if (iReaction == 37) {
+    } else if (iReaction == 37) {
 
       // N+ + N2 -> N2+ + N  (not in Tables A13-A15, forward only)  Using Mutation++ air-11 data
       //RxnConstantTable(0,0) = -0.00271;  RxnConstantTable(0,1) = 0.02134;  RxnConstantTable(0,2) = -1.3825;  RxnConstantTable(0,3) = -0.64735;  RxnConstantTable(0,4) = -0.02472;
@@ -3419,14 +3419,14 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       //RxnConstantTable(5,0) = -0.00271;  RxnConstantTable(5,1) = 0.02134;  RxnConstantTable(5,2) = -1.3825;  RxnConstantTable(5,3) = -0.64735;  RxnConstantTable(5,4) = -0.02472;
 
       // N+ + N2 -> N2+ + N   (refit from NASA RP-1232, valid 2000-30000 K)
-      //RxnConstantTable(0,0) = -2.85898;  RxnConstantTable(0,1) = -2.69958;  RxnConstantTable(0,2) = -13.5303; RxnConstantTable(0,3) = 6.05649;   RxnConstantTable(0,4) = -0.483583; //n = 1E14
-      //RxnConstantTable(1,0) = -1.92614;  RxnConstantTable(1,1) = -2.67693;  RxnConstantTable(1,2) = -10.5971; RxnConstantTable(1,3) = 4.69519;   RxnConstantTable(1,4) = -0.402935; //n = 1E15
-      //RxnConstantTable(2,0) = -1.01745;  RxnConstantTable(2,1) = -2.36419;  RxnConstantTable(2,2) = -7.47922; RxnConstantTable(2,3) = 3.14358;   RxnConstantTable(2,4) = -0.308171; //n = 1E16
-      //RxnConstantTable(3,0) = -0.323931; RxnConstantTable(3,1) = -1.86662;  RxnConstantTable(3,2) = -4.81154; RxnConstantTable(3,3) = 1.73391;   RxnConstantTable(3,4) = -0.219949; //n = 1E17
-      //RxnConstantTable(4,0) = 0.146971;  RxnConstantTable(4,1) = -1.18386;  RxnConstantTable(4,2) = -2.52465; RxnConstantTable(4,3) = 0.437343;  RxnConstantTable(4,4) = -0.136602; //n = 1E18
-      //RxnConstantTable(5,0) = 0.230879;  RxnConstantTable(5,1) = -0.644595; RxnConstantTable(5,2) = -1.47619; RxnConstantTable(5,3) = -0.231832; RxnConstantTable(5,4) = -0.091808; //n = 1E19
+      RxnConstantTable(0,0) = -2.85898;  RxnConstantTable(0,1) = -2.69958;  RxnConstantTable(0,2) = -13.5303; RxnConstantTable(0,3) = 6.05649;   RxnConstantTable(0,4) = -0.483583; //n = 1E14
+      RxnConstantTable(1,0) = -1.92614;  RxnConstantTable(1,1) = -2.67693;  RxnConstantTable(1,2) = -10.5971; RxnConstantTable(1,3) = 4.69519;   RxnConstantTable(1,4) = -0.402935; //n = 1E15
+      RxnConstantTable(2,0) = -1.01745;  RxnConstantTable(2,1) = -2.36419;  RxnConstantTable(2,2) = -7.47922; RxnConstantTable(2,3) = 3.14358;   RxnConstantTable(2,4) = -0.308171; //n = 1E16
+      RxnConstantTable(3,0) = -0.323931; RxnConstantTable(3,1) = -1.86662;  RxnConstantTable(3,2) = -4.81154; RxnConstantTable(3,3) = 1.73391;   RxnConstantTable(3,4) = -0.219949; //n = 1E17
+      RxnConstantTable(4,0) = 0.146971;  RxnConstantTable(4,1) = -1.18386;  RxnConstantTable(4,2) = -2.52465; RxnConstantTable(4,3) = 0.437343;  RxnConstantTable(4,4) = -0.136602; //n = 1E18
+      RxnConstantTable(5,0) = 0.230879;  RxnConstantTable(5,1) = -0.644595; RxnConstantTable(5,2) = -1.47619; RxnConstantTable(5,3) = -0.231832; RxnConstantTable(5,4) = -0.091808; //n = 1E19
 
-    } else if (iReaction == 37) {
+    } else if (iReaction == 38) {
 
       // O2+ + N -> N+ + O2
       RxnConstantTable(0,0) =  -3.6030;  RxnConstantTable(0,1) =   2.7010;  RxnConstantTable(0,2) =  -5.0155;  RxnConstantTable(0,3) = -0.89125;  RxnConstantTable(0,4) = -0.122970;  //n = 1E14
@@ -3436,7 +3436,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) =  -2.5960;  RxnConstantTable(4,1) =   2.3021;  RxnConstantTable(4,2) =  -3.5744;  RxnConstantTable(4,3) =  -1.5264;  RxnConstantTable(4,4) = -0.080816;  //n = 1E18
       RxnConstantTable(5,0) =  -2.5960;  RxnConstantTable(5,1) =   2.3021;  RxnConstantTable(5,2) =  -3.5744;  RxnConstantTable(5,3) =  -1.5264;  RxnConstantTable(5,4) = -0.080816;  //n = 1E19
 
-    } else if (iReaction == 38) {
+    } else if (iReaction == 39) {
 
       // O+ + NO -> N+ + O2
       RxnConstantTable(0,0) =  -1.6355;  RxnConstantTable(0,1) =  0.83058;  RxnConstantTable(0,2) =  -2.9952;  RxnConstantTable(0,3) =  -1.3794;  RxnConstantTable(0,4) = -0.079927;  //n = 1E14
@@ -3446,7 +3446,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) =  -1.6355;  RxnConstantTable(4,1) =  0.83058;  RxnConstantTable(4,2) =  -2.9952;  RxnConstantTable(4,3) =  -1.3794;  RxnConstantTable(4,4) = -0.079927;  //n = 1E18
       RxnConstantTable(5,0) =  -1.6355;  RxnConstantTable(5,1) =  0.83058;  RxnConstantTable(5,2) =  -2.9952;  RxnConstantTable(5,3) =  -1.3794;  RxnConstantTable(5,4) = -0.079927;  //n = 1E19
 
-    } else if (iReaction == 39) {
+    } else if (iReaction == 40) {
 
       // O2+ + N2 -> N2+ + O2
       RxnConstantTable(0,0) =  -2.5811;  RxnConstantTable(0,1) =   2.2863;  RxnConstantTable(0,2) =  -5.0946;  RxnConstantTable(0,3) =  -2.0378;  RxnConstantTable(0,4) = -0.121920;  //n = 1E14
@@ -3456,7 +3456,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) =  -2.5811;  RxnConstantTable(4,1) =   2.2863;  RxnConstantTable(4,2) =  -5.0946;  RxnConstantTable(4,3) =  -2.0378;  RxnConstantTable(4,4) = -0.121920;  //n = 1E18
       RxnConstantTable(5,0) =  -2.5811;  RxnConstantTable(5,1) =   2.2863;  RxnConstantTable(5,2) =  -5.0946;  RxnConstantTable(5,3) =  -2.0378;  RxnConstantTable(5,4) = -0.121920;  //n = 1E19
 
-    //} else if (iReaction == 41) {
+    } else if (iReaction == 41) {
 
       // O2+ + O -> O+ + O2  (not in Tables A13-A15, forward only)  Using Mutation++ air-11 data
       //RxnConstantTable(0,0) = -0.6531;  RxnConstantTable(0,1) = -0.36419;  RxnConstantTable(0,2) = -1.56307;  RxnConstantTable(0,3) = -1.197;  RxnConstantTable(0,4) = -0.02707;
@@ -3467,14 +3467,14 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       //RxnConstantTable(5,0) = -0.6531;  RxnConstantTable(5,1) = -0.36419;  RxnConstantTable(5,2) = -1.56307;  RxnConstantTable(5,3) = -1.197;  RxnConstantTable(5,4) = -0.02707;
 
       //O + O2+ -> O2 + O+   (refit from NASA RP-1232, valid 2000-30000 K)
-      //RxnConstantTable(0,0) = 0.397867;  RxnConstantTable(0,1) = 6.25044;   RxnConstantTable(0,2) = 9.50945;  RxnConstantTable(0,3) = -10.8487;  RxnConstantTable(0,4) = 0.712607;  //n = 1E14
-      //RxnConstantTable(1,0) = -0.456737; RxnConstantTable(1,1) = 5.83809;   RxnConstantTable(1,2) = 6.45651;  RxnConstantTable(1,3) = -9.21609;  RxnConstantTable(1,4) = 0.601659;  //n = 1E15
-      //RxnConstantTable(2,0) = -1.08176;  RxnConstantTable(2,1) = 4.75297;   RxnConstantTable(2,2) = 3.44499;  RxnConstantTable(2,3) = -7.22751;  RxnConstantTable(2,4) = 0.444605;  //n = 1E16
-      //RxnConstantTable(3,0) = -1.38293;  RxnConstantTable(3,1) = 3.3259;    RxnConstantTable(3,2) = 1.04416;  RxnConstantTable(3,3) = -5.33071;  RxnConstantTable(3,4) = 0.280138;  //n = 1E17
-      //RxnConstantTable(4,0) = -1.38452;  RxnConstantTable(4,1) = 1.63499;   RxnConstantTable(4,2) = -0.82487; RxnConstantTable(4,3) = -3.5436;   RxnConstantTable(4,4) = 0.113324;  //n = 1E18
-      //RxnConstantTable(5,0) = -1.1651;   RxnConstantTable(5,1) = 0.532367;  RxnConstantTable(5,2) = -1.5107;  RxnConstantTable(5,3) = -2.64254;  RxnConstantTable(5,4) = 0.0219787; //n = 1E19
+      RxnConstantTable(0,0) = 0.397867;  RxnConstantTable(0,1) = 6.25044;   RxnConstantTable(0,2) = 9.50945;  RxnConstantTable(0,3) = -10.8487;  RxnConstantTable(0,4) = 0.712607;  //n = 1E14
+      RxnConstantTable(1,0) = -0.456737; RxnConstantTable(1,1) = 5.83809;   RxnConstantTable(1,2) = 6.45651;  RxnConstantTable(1,3) = -9.21609;  RxnConstantTable(1,4) = 0.601659;  //n = 1E15
+      RxnConstantTable(2,0) = -1.08176;  RxnConstantTable(2,1) = 4.75297;   RxnConstantTable(2,2) = 3.44499;  RxnConstantTable(2,3) = -7.22751;  RxnConstantTable(2,4) = 0.444605;  //n = 1E16
+      RxnConstantTable(3,0) = -1.38293;  RxnConstantTable(3,1) = 3.3259;    RxnConstantTable(3,2) = 1.04416;  RxnConstantTable(3,3) = -5.33071;  RxnConstantTable(3,4) = 0.280138;  //n = 1E17
+      RxnConstantTable(4,0) = -1.38452;  RxnConstantTable(4,1) = 1.63499;   RxnConstantTable(4,2) = -0.82487; RxnConstantTable(4,3) = -3.5436;   RxnConstantTable(4,4) = 0.113324;  //n = 1E18
+      RxnConstantTable(5,0) = -1.1651;   RxnConstantTable(5,1) = 0.532367;  RxnConstantTable(5,2) = -1.5107;  RxnConstantTable(5,3) = -2.64254;  RxnConstantTable(5,4) = 0.0219787; //n = 1E19
 
-    } else if (iReaction == 40) {
+    } else if (iReaction == 42) {
 
       // NO+ + N -> O+ + N2
       RxnConstantTable(0,0) =  -1.2255;  RxnConstantTable(0,1) =  0.10039;  RxnConstantTable(0,2) =  -1.2212;  RxnConstantTable(0,3) = -0.89883;  RxnConstantTable(0,4) = -0.025232;  //n = 1E14
@@ -3484,7 +3484,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) = -0.21842;  RxnConstantTable(4,1) = -0.29849;  RxnConstantTable(4,2) =  0.21998;  RxnConstantTable(4,3) =  -1.5340;  RxnConstantTable(4,4) =  0.016923;  //n = 1E18
       RxnConstantTable(5,0) = -0.21842;  RxnConstantTable(5,1) = -0.29849;  RxnConstantTable(5,2) =  0.21998;  RxnConstantTable(5,3) =  -1.5340;  RxnConstantTable(5,4) =  0.016923;  //n = 1E19
 
-    } else if (iReaction == 41) {
+    } else if (iReaction == 43) {
 
       // NO+ + O2 -> O2+ + NO
       RxnConstantTable(0,0) =   1.7139;  RxnConstantTable(0,1) =  0.86469;  RxnConstantTable(0,2) =   2.7679;  RxnConstantTable(0,3) =  -4.3932;  RxnConstantTable(0,4) =  0.070493;  //n = 1E14
@@ -3494,7 +3494,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) =   1.7139;  RxnConstantTable(4,1) =  0.86469;  RxnConstantTable(4,2) =   2.7679;  RxnConstantTable(4,3) =  -4.3932;  RxnConstantTable(4,4) =  0.070493;  //n = 1E18
       RxnConstantTable(5,0) =   1.7139;  RxnConstantTable(5,1) =  0.86469;  RxnConstantTable(5,2) =   2.7679;  RxnConstantTable(5,3) =  -4.3932;  RxnConstantTable(5,4) =  0.070493;  //n = 1E19
 
-    } else if (iReaction == 42) {
+    } else if (iReaction == 44) {
 
       // NO+ + O -> O2+ + N
       RxnConstantTable(0,0) =   2.0681;  RxnConstantTable(0,1) =  -1.0173;  RxnConstantTable(0,2) =   2.0466;  RxnConstantTable(0,3) =  -5.5728;  RxnConstantTable(0,4) =  0.039655;  //n = 1E14
@@ -3504,7 +3504,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) =   1.7039;  RxnConstantTable(4,1) = -0.87383;  RxnConstantTable(4,2) =   1.5239;  RxnConstantTable(4,3) =  -5.3420;  RxnConstantTable(4,4) =  0.024321;  //n = 1E18
       RxnConstantTable(5,0) =   1.7112;  RxnConstantTable(5,1) = -0.87672;  RxnConstantTable(5,2) =   1.5345;  RxnConstantTable(5,3) =  -5.3467;  RxnConstantTable(5,4) =  0.024631;  //n = 1E19
 
-    } else if (iReaction == 43) {
+    } else if (iReaction == 45) {
 
       // O+ + N2 -> N2+ + O
       RxnConstantTable(0,0) = -0.96795;  RxnConstantTable(0,1) =   2.2979;  RxnConstantTable(0,2) =  -2.3531;  RxnConstantTable(0,3) =  -1.3463;  RxnConstantTable(0,4) = -0.048042;  //n = 1E14
@@ -3514,7 +3514,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) =  -1.6108;  RxnConstantTable(4,1) =   2.5533;  RxnConstantTable(4,2) =  -3.2718;  RxnConstantTable(4,3) = -0.94186;  RxnConstantTable(4,4) = -0.074867;  //n = 1E18
       RxnConstantTable(5,0) =  -1.6181;  RxnConstantTable(5,1) =   2.5562;  RxnConstantTable(5,2) =  -3.2823;  RxnConstantTable(5,3) = -0.93721;  RxnConstantTable(5,4) = -0.075176;  //n = 1E19
 
-    } else if (iReaction == 44) {
+    } else if (iReaction == 46) {
 
       // NO+ + N -> N2+ + O
       RxnConstantTable(0,0) =  -2.1934;  RxnConstantTable(0,1) =   2.3983;  RxnConstantTable(0,2) =  -3.5743;  RxnConstantTable(0,3) =  -2.2452;  RxnConstantTable(0,4) = -0.073271;  //n = 1E14
@@ -3524,7 +3524,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) =  -1.8292;  RxnConstantTable(4,1) =   2.2548;  RxnConstantTable(4,2) =  -3.0517;  RxnConstantTable(4,3) =  -2.4759;  RxnConstantTable(4,4) = -0.057940;  //n = 1E18
       RxnConstantTable(5,0) =  -1.8365;  RxnConstantTable(5,1) =   2.2577;  RxnConstantTable(5,2) =  -3.0622;  RxnConstantTable(5,3) =  -2.4713;  RxnConstantTable(5,4) = -0.058248;  //n = 1E19
 
-    } else if (iReaction == 45) {
+    } else if (iReaction == 47) {
 
       // O + e- -> O+ + e- + e-
       RxnConstantTable(0,0) =  0.08045;  RxnConstantTable(0,1) =  -5.7393;  RxnConstantTable(0,2) =  -1.4195;  RxnConstantTable(0,3) =  -15.844;  RxnConstantTable(0,4) = -0.001087;  //n = 1E14
@@ -3534,7 +3534,7 @@ void CSU2TCLib::GetChemistryEquilConstants(unsigned short iReaction){
       RxnConstantTable(4,0) =  0.72341;  RxnConstantTable(4,1) =  -5.9947;  RxnConstantTable(4,2) =  -0.5007;  RxnConstantTable(4,3) =  -16.249;  RxnConstantTable(4,4) =  0.025743;  //n = 1E18
       RxnConstantTable(5,0) =  0.73078;  RxnConstantTable(5,1) =  -5.9976;  RxnConstantTable(5,2) = -0.49012;  RxnConstantTable(5,3) =  -16.254;  RxnConstantTable(5,4) =  0.026054;  //n = 1E19
 
-    } else if (iReaction == 46) {
+    } else if (iReaction == 48) {
 
       // N + e- -> N+ + e- + e-
       RxnConstantTable(0,0) =  -1.9094;  RxnConstantTable(0,1) =  -3.0267;  RxnConstantTable(0,2) =  -3.6935;  RxnConstantTable(0,3) =  -16.044;  RxnConstantTable(0,4) = -0.050183;  //n = 1E14

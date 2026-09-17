@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 /* created by combine 2.0 */
 /* file ADFI_AAA_var.c */
 /***

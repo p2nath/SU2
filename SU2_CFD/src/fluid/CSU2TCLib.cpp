@@ -2135,9 +2135,10 @@ void CSU2TCLib::SetTDStateRhosTTv(vector<su2double>& val_rhos, su2double val_tem
 
 vector<su2double>& CSU2TCLib::GetSpeciesCvTraRot(){
 
-  if(ionization) Cvtrs[0] = 0.0;
+  //if(ionization) Cvtrs[0] = 0.0;
 
-  for (iSpecies = nEl; iSpecies <= nHeavy; iSpecies++)
+  //for (iSpecies = nEl; iSpecies < nHeavy; iSpecies++)
+  for (iSpecies = 0; iSpecies < nSpecies; iSpecies++)
     Cvtrs[iSpecies] = (3.0/2.0 + RotationModes[iSpecies]/2.0) * Ru/MolarMass[iSpecies];
 
   return Cvtrs;

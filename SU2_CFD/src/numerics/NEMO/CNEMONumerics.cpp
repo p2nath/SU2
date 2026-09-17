@@ -88,6 +88,7 @@ void CNEMONumerics::GetInviscidProjFlux(const su2double *val_U,
   const su2double *rhos;
 
   /*--- Initialize vectors ---*/
+
   for (auto iVar = 0ul; iVar < nVar; iVar++)
     val_Proj_Flux[iVar] = 0.0;
 
@@ -273,6 +274,9 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
 
   /*--- Pre-compute mixture quantities ---*/  //TODO
   su2double Vector[MAXNDIM] = {0.0};
+
+  cout<<"VEL_INDEX = "<<VEL_INDEX<<endl;
+
   for (auto iDim = 0ul; iDim < nDim; iDim++) {
     for (auto iSpecies = 0ul; iSpecies < nHeavy; iSpecies++) {
       Vector[iDim] += rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim];

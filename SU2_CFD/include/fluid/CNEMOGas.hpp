@@ -236,8 +236,9 @@ public:
    */
   inline su2double ComputerhoCvtr() {
     rhoCvtr = 0.0;
-    for (iSpecies = 0; iSpecies < nHeavy; iSpecies++)
-      rhoCvtr += rhos[iSpecies]*Cvtrs[iSpecies];
+    //for (iSpecies = 0; iSpecies < nHeavy; iSpecies++)
+    for (iSpecies = 0; iSpecies < nSpecies; iSpecies++)
+	rhoCvtr += rhos[iSpecies]*Cvtrs[iSpecies];
     return rhoCvtr;
   }
 

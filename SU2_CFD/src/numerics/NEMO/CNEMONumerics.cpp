@@ -295,18 +295,20 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
   ComputeStressTensor(nDim,tau,val_gradprimvar+VEL_INDEX, mu, rho, su2double(0.0));
 
   vector<su2double> Charge(nSpecies, 0.0);
-  if (ionization) {
-   const string gas_model = config->GetGasModel();
-   if (gas_model == "AIR-7") {
-     Charge[0] = -1.0; Charge[6] = 1.0;
-   }
-   else if (gas_model == "AIR-11") {
-     Charge[0] = -1.0; Charge[6] = 1.0; Charge[7] = 1.0; Charge[8] = 1.0; Charge[9] = 1.0; Charge[10] = 1.0;
-   }
-   else {
-    SU2_MPI::Error("Electron ambipolar diffusion (species charge table) is not implemented "
-                    "for GAS_MODEL= " + gas_model, CURRENT_FUNCTION);
-   }
+
+  ionization = config->GetIonization();
+  
+
+  const string gas_model = config->GetGasModel();
+  if (gas_model == "AIR-7") {
+    Charge[0] = -1.0; Charge[6] = 1.0;
+  }
+  else if (gas_model == "AIR-11") {
+    Charge[0] = -1.0; Charge[6] = 1.0; Charge[7] = 1.0; Charge[8] = 1.0; Charge[9] = 1.0; Charge[10] = 1.0;
+  }
+  else {
+   SU2_MPI::Error("Electron ambipolar diffusion (species charge table) is not implemented "
+                   "for GAS_MODEL= " + gas_model, CURRENT_FUNCTION);
   }
 
   /*--- Populate entries in the viscous flux vector ---*/
@@ -328,7 +330,7 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
     }
 
     /*--- Electron diffusion flux (Eq. 2.9): J_e = M_e * sum_{s!=e}(J_s*C_s/M_s) ---*/
-    if (ionization) {
+    if (gas_model == "AIR-7" || gas_model == "AIR-11") {
       su2double Je = 0.0;
       for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
         Je += Flux_Tensor[iSpecies][iDim] * Charge[iSpecies] / Ms[iSpecies];

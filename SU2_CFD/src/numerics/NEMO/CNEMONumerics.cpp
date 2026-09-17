@@ -275,10 +275,18 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
   /*--- Pre-compute mixture quantities ---*/  //TODO
   su2double Vector[MAXNDIM] = {0.0};
 
-  cout<<"VEL_INDEX = "<<VEL_INDEX<<endl;
 
+  /*
   for (auto iDim = 0ul; iDim < nDim; iDim++) {
     for (auto iSpecies = 0ul; iSpecies < nHeavy; iSpecies++) {
+      Vector[iDim] += rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim];
+    }
+  }
+  */
+
+
+  for (auto iDim = 0ul; iDim < nDim; iDim++) {
+    for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
       Vector[iDim] += rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim];
     }
   }
@@ -286,14 +294,49 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
   /*--- Compute the viscous stress tensor ---*/
   ComputeStressTensor(nDim,tau,val_gradprimvar+VEL_INDEX, mu, rho, su2double(0.0));
 
+  vector<su2double> Charge(nSpecies, 0.0);
+  if (ionization) {
+   const string gas_model = config->GetGasModel();
+   if (gas_model == "AIR-7") {
+     Charge[0] = -1.0; Charge[6] = 1.0;
+   }
+   else if (gas_model == "AIR-11") {
+     Charge[0] = -1.0; Charge[6] = 1.0; Charge[7] = 1.0; Charge[8] = 1.0; Charge[9] = 1.0; Charge[10] = 1.0;
+   }
+   else {
+    SU2_MPI::Error("Electron ambipolar diffusion (species charge table) is not implemented "
+                    "for GAS_MODEL= " + gas_model, CURRENT_FUNCTION);
+   }
+  }
+
   /*--- Populate entries in the viscous flux vector ---*/
   for (auto iDim = 0ul; iDim < nDim; iDim++) {
 
     /*--- Species diffusion velocity ---*/
+    /*
     for (auto iSpecies = 0ul; iSpecies < nHeavy; iSpecies++) {
       Flux_Tensor[iSpecies][iDim] = rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim]
           - V[RHOS_INDEX+iSpecies]*Vector[iDim];
     }
+    */
+    
+    //---------------------------------------------------------------------------
+
+    for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
+      Flux_Tensor[iSpecies][iDim] = rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim]
+          - V[RHOS_INDEX+iSpecies]*Vector[iDim];
+    }
+
+    /*--- Electron diffusion flux (Eq. 2.9): J_e = M_e * sum_{s!=e}(J_s*C_s/M_s) ---*/
+    if (ionization) {
+      su2double Je = 0.0;
+      for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
+        Je += Flux_Tensor[iSpecies][iDim] * Charge[iSpecies] / Ms[iSpecies];
+      }
+      Flux_Tensor[0][iDim] = Ms[0] * Je;
+    }
+
+    //--------------------------------------------------------------------------
 
     /*--- Shear-stress/momentum related terms ---*/
     Flux_Tensor[nSpecies+nDim][iDim] = 0.0;
@@ -303,7 +346,14 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
     }
 
     /*--- Diffusion terms ---*/
+    /*
     for (auto iSpecies = 0ul; iSpecies < nHeavy; iSpecies++) {
+      Flux_Tensor[nSpecies+nDim][iDim]   += Flux_Tensor[iSpecies][iDim] * hs[iSpecies];
+      Flux_Tensor[nSpecies+nDim+1][iDim] += Flux_Tensor[iSpecies][iDim] * val_eve[iSpecies];
+    }
+    */
+
+    for (auto iSpecies = 0ul; iSpecies < nSpecies; iSpecies++) {
       Flux_Tensor[nSpecies+nDim][iDim]   += Flux_Tensor[iSpecies][iDim] * hs[iSpecies];
       Flux_Tensor[nSpecies+nDim+1][iDim] += Flux_Tensor[iSpecies][iDim] * val_eve[iSpecies];
     }

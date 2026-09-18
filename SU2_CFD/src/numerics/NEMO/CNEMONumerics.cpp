@@ -275,6 +275,8 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
   /*--- Pre-compute mixture quantities ---*/  //TODO
   su2double Vector[MAXNDIM] = {0.0};
 
+  //cout<<"nEl = "<<nEl<<" and "<<"nHeavy = "<<nHeavy<<endl;
+
 
   /*
   for (auto iDim = 0ul; iDim < nDim; iDim++) {
@@ -286,7 +288,7 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
 
 
   for (auto iDim = 0ul; iDim < nDim; iDim++) {
-    for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
+    for (auto iSpecies = 1; iSpecies < nSpecies; iSpecies++) {
       Vector[iDim] += rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim];
     }
   }
@@ -296,8 +298,6 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
 
   vector<su2double> Charge(nSpecies, 0.0);
 
-  ionization = config->GetIonization();
-  
 
   const string gas_model = config->GetGasModel();
   if (gas_model == "AIR-7") {
@@ -310,6 +310,7 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
    SU2_MPI::Error("Electron ambipolar diffusion (species charge table) is not implemented "
                    "for GAS_MODEL= " + gas_model, CURRENT_FUNCTION);
   }
+
 
   /*--- Populate entries in the viscous flux vector ---*/
   for (auto iDim = 0ul; iDim < nDim; iDim++) {
@@ -324,7 +325,7 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
     
     //---------------------------------------------------------------------------
 
-    for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
+    for (auto iSpecies = 1; iSpecies < nSpecies; iSpecies++) {
       Flux_Tensor[iSpecies][iDim] = rho*Ds[iSpecies]*GV[RHOS_INDEX+iSpecies][iDim]
           - V[RHOS_INDEX+iSpecies]*Vector[iDim];
     }
@@ -332,7 +333,7 @@ void CNEMONumerics::GetViscousProjFlux(const su2double *val_primvar,
     /*--- Electron diffusion flux (Eq. 2.9): J_e = M_e * sum_{s!=e}(J_s*C_s/M_s) ---*/
     if (gas_model == "AIR-7" || gas_model == "AIR-11") {
       su2double Je = 0.0;
-      for (auto iSpecies = nEl; iSpecies < nSpecies; iSpecies++) {
+      for (auto iSpecies = 1; iSpecies < nSpecies; iSpecies++) {
         Je += Flux_Tensor[iSpecies][iDim] * Charge[iSpecies] / Ms[iSpecies];
       }
       Flux_Tensor[0][iDim] = Ms[0] * Je;

@@ -2667,11 +2667,13 @@ vector<su2double>& CSU2TCLib::ComputeSpeciesEnthalpy(su2double val_T, su2double 
   //TODO: ADD Electrons?
   cvtrs = GetSpeciesCvTraRot();
 
-  for (iSpecies = 0; iSpecies < nSpecies; iSpecies++){
+  for (iSpecies = nEl; iSpecies < nSpecies; iSpecies++){
     eves[iSpecies] = val_eves[iSpecies];
     hs[iSpecies] = Ru/MolarMass[iSpecies]*val_T + cvtrs[iSpecies]*val_T + Enthalpy_Formation[iSpecies] + eves[iSpecies];
   }
 
+  hs[0] = Ru/MolarMass[0]*val_Tve +  eves[0];
+  
   return hs;
 
 }
